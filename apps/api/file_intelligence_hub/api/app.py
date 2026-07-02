@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from file_intelligence_hub.api.security import ApiTokenMiddleware
+
 from file_intelligence_hub.api.routes_commands import router as commands_router
 from file_intelligence_hub.api.routes_file_actions import router as file_actions_router
 from file_intelligence_hub.api.routes_file_cache import router as file_cache_router
@@ -25,6 +27,7 @@ def create_app() -> FastAPI:
     app.include_router(memory_router)
     app.include_router(nodes_router)
     app.include_router(top_of_mind_router)
+    app.add_middleware(ApiTokenMiddleware)
     return app
 
 
