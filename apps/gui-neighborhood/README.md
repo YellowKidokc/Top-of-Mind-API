@@ -42,7 +42,7 @@ First pass sources:
 Copied extensions:
 
 ```text
-.html .htm .css .js .jsx .tsx .ts .ahk
+.html .htm .css .js .jsx .tsx .ts .ahk .py
 ```
 
 Skipped common generated/dependency folders:
@@ -54,3 +54,5 @@ Skipped common generated/dependency folders:
 Two copied Gemini test files containing a live-looking API key were removed from
 this archive before commit.
 
+Python files are included only when they are part of a GUI/prototype flow, such
+as the 20 Questions scanner/profiler engine.
