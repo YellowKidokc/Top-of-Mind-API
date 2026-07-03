@@ -1,0 +1,52 @@
+#!/bin/sh
+
+PACKAGE="TopOfMindAPI"
+if [ -n "$SYNOPKG_PKGDEST" ] && [ -d "$SYNOPKG_PKGDEST/deploy/synology" ]; then
+  SERVICE_DIR="$SYNOPKG_PKGDEST/deploy/synology"
+else
+  SERVICE_DIR="/volume1/docker/top-of-mind-api/repo/deploy/synology"
+fi
+
+compose_cmd() {
+  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+    return $?
+  fi
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose "$@"
+    return $?
+  fi
+  echo "docker compose or docker-compose not found. Install Synology Container Manager." >&2
+  return 1
+}
+
+case "$1" in
+  start)
+    cd "$SERVICE_DIR" || exit 1
+    if [ ! -f ".env" ]; then
+      echo "Missing $SERVICE_DIR/.env. Copy .env.example to .env and set FIHUB_API_TOKEN before starting." >&2
+      exit 1
+    fi
+    compose_cmd up -d --build
+    ;;
+  stop)
+    cd "$SERVICE_DIR" || exit 1
+    compose_cmd down
+    ;;
+  status)
+    if docker ps --format '{{.Names}}' | grep -q '^top-of-mind-api$'; then
+      exit 0
+    fi
+    exit 1
+    ;;
+  log)
+    cd "$SERVICE_DIR" || exit 1
+    compose_cmd logs --tail=200
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|status|log}" >&2
+    exit 1
+    ;;
+esac
+
+exit $?

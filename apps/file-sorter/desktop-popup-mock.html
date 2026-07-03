@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ctrl+Alt+F — Desktop Popup Mock</title>
+<style>
+  :root{
+    --bg:#05070c; --card:#0c1119; --card2:#111a28; --line:#1f2b3f;
+    --text:#dce6f5; --muted:#7f92ae; --faint:#4a5c78;
+    --blue:#4d8fe0; --gold:#d4af37; --teal:#26b8a6; --rose:#e05ea8;
+    --green:#2ebd87; --amber:#e0a53a; --red:#ff5a6a; --violet:#8b6fe8;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:Inter,Segoe UI,system-ui,sans-serif;
+    /* faux desktop behind the popup */
+    background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.015) 0 2px,transparent 2px 22px),
+      radial-gradient(ellipse at 30% 20%,#0d1830,#05070c 70%);
+    display:grid;place-items:center;color:var(--text)}
+  .hint{position:fixed;top:18px;left:0;right:0;text-align:center;color:var(--faint);
+    font:12px 'JetBrains Mono',monospace;letter-spacing:.08em}
+  .hint b{color:var(--gold)}
+
+  /* ── the popup ── */
+  .popup{width:min(720px,94vw);background:rgba(12,17,25,.97);border:1px solid var(--line);
+    border-radius:16px;box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(77,143,224,.08);
+    backdrop-filter:blur(20px);overflow:hidden}
+  /* search bar */
+  .search{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .search .ic{color:var(--faint);font-size:18px}
+  .search input{flex:1;background:transparent;border:0;outline:0;color:var(--text);
+    font:400 17px Inter,sans-serif}
+  .search input::placeholder{color:var(--faint)}
+  .search .esc{border:1px solid var(--line);border-radius:6px;padding:3px 8px;
+    color:var(--faint);font:700 10px 'JetBrains Mono',monospace}
+
+  /* tabs */
+  .tabs{display:flex;gap:2px;padding:8px 12px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.2)}
+  .tab{display:flex;align-items:center;gap:7px;border:1px solid transparent;border-radius:8px;
+    padding:7px 13px;color:var(--muted);font:600 12px Inter,sans-serif;cursor:pointer;transition:.14s}
+  .tab .k{font:700 9px 'JetBrains Mono',monospace;color:var(--faint);border:1px solid var(--line);
+    border-radius:4px;padding:1px 5px}
+  .tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+  .tab.on{color:var(--blue);border-color:rgba(77,143,224,.35);background:rgba(77,143,224,.12)}
+  .tab.on .k{color:var(--blue);border-color:rgba(77,143,224,.35)}
+  .badge{background:var(--amber);color:#05070c;border-radius:999px;font:700 9px/1 'JetBrains Mono',monospace;
+    padding:2px 5px;margin-left:2px}
+
+  /* body */
+  .body{padding:14px 16px;min-height:340px;max-height:56vh;overflow:auto}
+  .hidden{display:none}
+  .row{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;
+    background:var(--card2);padding:11px 13px;margin-bottom:8px}
+  .row:hover{border-color:rgba(77,143,224,.3)}
+  .grow{flex:1;min-width:0}
+  .mono{font-family:'JetBrains Mono',Consolas,monospace}
+  .old{color:var(--faint);font-size:12px;text-decoration:line-through}
+  .new{color:var(--text);font-size:13px}
+  .new b{color:var(--gold)}
+  .sub{color:var(--muted);font-size:11px}
+  .pill{border:1px solid currentColor;border-radius:999px;padding:2px 8px;font:700 9px/1.5 'JetBrains Mono',monospace;white-space:nowrap}
+  .p-hi{color:var(--green)} .p-md{color:var(--amber)} .p-lo{color:var(--red)}
+  .mini{border:1px solid var(--line);background:var(--card);border-radius:7px;color:var(--muted);
+    padding:6px 10px;font:600 11px Inter,sans-serif;cursor:pointer;transition:.14s}
+  .mini:hover{color:var(--text);border-color:var(--blue)}
+  .mini.go{color:var(--green);border-color:rgba(46,189,135,.4)}
+  .mini.go:hover{background:rgba(46,189,135,.12)}
+
+  /* code chips (concept search) */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+  .chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;
+    background:var(--card2);padding:9px 12px;cursor:pointer;transition:.14s}
+  .chip:hover{border-color:var(--blue)}
+  .chip.on{border-color:var(--gold);background:rgba(212,175,55,.1)}
+  .chip .code{font:800 13px 'JetBrains Mono',monospace;color:var(--gold)}
+  .chip .lab{font-size:12px;color:var(--text)}
+  .chip .why{font-size:10px;color:var(--faint)}
+  .foot{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);
+    padding:12px 16px;color:var(--muted);font-size:12px}
+  .foot .grow{flex:1}
+  .send{border:1px solid rgba(46,189,135,.4);color:var(--green);background:rgba(46,189,135,.08);
+    border-radius:8px;padding:8px 16px;font:600 12px Inter,sans-serif;cursor:pointer}
+  .send:hover{background:rgba(46,189,135,.16)}
+  textarea{width:100%;min-height:110px;background:var(--card2);border:1px solid var(--line);
+    border-radius:10px;color:var(--text);padding:12px;font:13px Inter,sans-serif;resize:vertical}
+  .agents{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .ag{border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:12px;
+    color:var(--muted);cursor:pointer;transition:.14s}
+  .ag:hover{color:var(--text)}
+  .ag.on{color:var(--violet);border-color:rgba(139,111,232,.5);background:rgba(139,111,232,.12)}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+    background:var(--card);border:1px solid var(--green);color:var(--green);
+    border-radius:9px;padding:10px 18px;font:600 13px Inter,sans-serif;opacity:0;transition:.2s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+  <div class="hint">mock · press a tab or type · <b>Ctrl+Alt+F</b> would summon this over any window</div>
+
+  <div class="popup">
+    <div class="search">
+      <span class="ic">⌕</span>
+      <input id="q" placeholder="Type a concept, a file, or a command…  (e.g. &quot;consciousness&quot;, &quot;rename&quot;)" autofocus>
+      <span class="esc">ESC</span>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab on" data-tab="rename"><span class="k">1</span>Rename queue <span class="badge" id="rqBadge">4</span></div>
+      <div class="tab" data-tab="search"><span class="k">2</span>Concept → code</div>
+      <div class="tab" data-tab="clip"><span class="k">3</span>Clipboard</div>
+      <div class="tab" data-tab="send"><span class="k">4</span>Send to AI</div>
+    </div>
+
+    <div class="body">
+      <!-- TAB 1: RENAME QUEUE -->
+      <div id="rename">
+        <div id="rqList"></div>
+      </div>
+
+      <!-- TAB 2: CONCEPT SEARCH -->
+      <div id="search" class="hidden">
+        <div class="sub" style="margin-bottom:8px">You typed <b class="mono" style="color:var(--gold)" id="qEcho">consciousness</b> — resolved codes (click to select, then search files):</div>
+        <div class="chips" id="chips"></div>
+        <div class="row"><span class="grow sub">Selected: <b id="selCodes" class="mono" style="color:var(--gold)">CS</b></span>
+          <button class="mini go" onclick="toast('Searching Postgres for TP.'+document.getElementById('selCodes').textContent+' …  37 files')">Search files →</button></div>
+      </div>
+
+      <!-- TAB 3: CLIPBOARD -->
+      <div id="clip" class="hidden">
+        <div id="clipList"></div>
+      </div>
+
+      <!-- TAB 4: SEND TO AI -->
+      <div id="send" class="hidden">
+        <div class="agents" id="agents"></div>
+        <textarea id="msg" placeholder="Type once here — routes out to the selected AI through the hub…"></textarea>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="grow" id="footNote">4 renames pending · high-confidence auto-apply is OFF</span>
+      <button class="mini">Settings</button>
+      <button class="send" id="footAction" onclick="footGo()">Approve all</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+// ── sample data driven by the FIS schema: slug_DOMAIN.SUBJECT_ID.ext ──
+const RENAMES=[
+  {old:'Untitled (3).md', slug:'master-equation-nodrift', dom:'TP', sub:'MQ', id:'000147', ext:'md', conf:91},
+  {old:'IMG_4587.jpg', slug:'whiteboard-coherence-proof', dom:'TP', sub:'MT', id:'000148', ext:'jpg', conf:78},
+  {old:'claude_export_2026.json', slug:'resurrection-decoherence-thread', dom:'TP', sub:'JS-RS', id:'000149', ext:'json', conf:64},
+  {old:'sellvia stuff.xlsx', slug:'sellvia-bot-traffic-z27', dom:'EV', sub:'SL', id:'000151', ext:'xlsx', conf:88},
+];
+const CODES=[
+  {code:'CS', lab:'Consciousness', why:'direct match'},
+  {code:'MQ', lab:'Master Equation', why:'alias: "consciousness fundamental"'},
+  {code:'GR', lab:'Grace', why:'description mentions consciousness'},
+  {code:'AX', lab:'Axioms', why:'related cluster'},
+];
+const CLIPS=[
+  {body:'χ = ∫ (coherence − entropy) dt', app:'Obsidian', pin:true},
+  {body:'http://192.168.2.50:10000/top-of-mind/messages', app:'Chrome', pin:false},
+  {body:'TP.MQ_000147_master-equation-nodrift.md', app:'Directory Opus', pin:false},
+  {body:'SELECT * FROM files WHERE domain=\'TP\' AND status=\'pending\';', app:'DBeaver', pin:false},
+];
+const AGENTS=['Claude','Gemini','Cursor','Kimmy','Codex'];
+
+let tab='rename', selected=new Set(['CS']), agent='Claude';
+
+// rename queue
+function renderRenames(){
+  document.getElementById('rqList').innerHTML=RENAMES.map((r,i)=>{
+    const cls=r.conf>=85?'p-hi':r.conf>=50?'p-md':'p-lo';
+    return `<div class="row" data-i="${i}">
+      <div class="grow">
+        <div class="old mono">${r.old}</div>
+        <div class="new mono">${r.slug}_<b>${r.dom}.${r.sub}</b>_${r.id}.${r.ext}</div>
+      </div>
+      <span class="pill ${cls}">${r.conf}%</span>
+      <button class="mini">Edit</button>
+      <button class="mini go" onclick="approve(${i})">Approve</button>
+    </div>`}).join('') || '<div class="sub" style="padding:20px;text-align:center">Queue clear ✓</div>';
+  document.getElementById('rqBadge').textContent=RENAMES.length;
+  document.getElementById('footNote').textContent=`${RENAMES.length} renames pending · high-confidence auto-apply is OFF`;
+}
+function approve(i){ toast('Renamed → '+RENAMES[i].slug+'_'+RENAMES[i].dom+'.'+RENAMES[i].sub); RENAMES.splice(i,1); renderRenames(); }
+
+// concept chips
+function renderChips(){
+  document.getElementById('chips').innerHTML=CODES.map(c=>
+    `<div class="chip ${selected.has(c.code)?'on':''}" data-code="${c.code}">
+      <span class="code">${c.code}</span>
+      <div><div class="lab">${c.lab}</div><div class="why">${c.why}</div></div>
+    </div>`).join('');
+  document.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{
+    const c=ch.dataset.code; selected.has(c)?selected.delete(c):selected.add(c);
+    document.getElementById('selCodes').textContent=[...selected].join('-')||'—'; renderChips();});
+}
+// clipboard
+function renderClips(){
+  document.getElementById('clipList').innerHTML=CLIPS.map((c,i)=>
+    `<div class="row">
+      <span class="grow mono new" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.body}</span>
+      <span class="sub">${c.app}</span>
+      <button class="mini" onclick="toast('${c.pin?'Unpinned':'Pinned'}')">${c.pin?'📌':'pin'}</button>
+      <button class="mini go" onclick="toast('Copied to clipboard')">copy</button>
+    </div>`).join('');
+}
+// send
+function renderAgents(){
+  document.getElementById('agents').innerHTML=AGENTS.map(a=>
+    `<div class="ag ${a===agent?'on':''}" data-a="${a}">${a}</div>`).join('');
+  document.querySelectorAll('.ag').forEach(el=>el.onclick=()=>{agent=el.dataset.a;renderAgents();});
+}
+
+// tab switching
+function setTab(t){
+  tab=t;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('on',el.dataset.tab===t));
+  ['rename','search','clip','send'].forEach(id=>document.getElementById(id).classList.toggle('hidden',id!==t));
+  const fn=document.getElementById('footNote'), fa=document.getElementById('footAction');
+  if(t==='rename'){fn.textContent=RENAMES.length+' renames pending · auto-apply OFF'; fa.textContent='Approve all'; fa.onclick=()=>{while(RENAMES.length)approve(0);};}
+  if(t==='search'){fn.textContent=selected.size+' code(s) selected'; fa.textContent='Search files'; fa.onclick=()=>toast('37 files match');}
+  if(t==='clip'){fn.textContent=CLIPS.length+' clips · synced to hub'; fa.textContent='New clip'; fa.onclick=()=>toast('Saved current clipboard');}
+  if(t==='send'){fn.textContent='→ '+agent+' (via hub, delivery: pending)'; fa.textContent='Send'; fa.onclick=()=>toast('Queued to '+agent+' — pending delivery');}
+}
+function footGo(){ /* handled per-tab */ }
+document.querySelectorAll('.tab').forEach(el=>el.onclick=()=>setTab(el.dataset.tab));
+document.addEventListener('keydown',e=>{
+  if(e.key>='1'&&e.key<='4'){setTab(['rename','search','clip','send'][+e.key-1]);}
+});
+document.getElementById('q').addEventListener('input',e=>{
+  const v=e.target.value.trim(); if(v){document.getElementById('qEcho').textContent=v;}
+});
+
+let tT;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),1800);}
+
+renderRenames();renderChips();renderClips();renderAgents();setTab('rename');
+</script>
+</body>
+</html>

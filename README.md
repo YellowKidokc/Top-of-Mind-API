@@ -46,6 +46,23 @@ For LAN clients, use the machine IP instead of `127.0.0.1`, for example:
 http://192.168.2.50:10000
 ```
 
+Safer LAN remote mode with a generated token:
+
+```powershell
+cd D:\GitHub\Top-of-Mind-API\apps\api
+.\scripts\remote\start_remote_api.ps1
+```
+
+Then test it:
+
+```powershell
+.\scripts\remote\test_remote_api.ps1 -BaseUrl http://127.0.0.1:10000
+```
+
+Remote notes:
+
+`apps/api/docs/remote/README.md`
+
 ## SQLite
 
 The hub uses SQLite by default. Keep the database local to the hub machine and let other machines call the API over the LAN. Do not have multiple computers write directly to the same SQLite file on a network share.
@@ -57,6 +74,24 @@ $env:FIHUB_DB_PATH="D:\TopOfMind\data\top-of-mind.sqlite3"
 ```
 
 Synology/NAS should be used for backups, archives, and shared files, not as the live SQLite writer.
+
+## Synology
+
+Synology deployment assets live in:
+
+```text
+deploy/synology/
+```
+
+Use Container Manager first:
+
+```sh
+cd /volume1/docker/top-of-mind-api/repo/deploy/synology
+cp .env.example .env
+docker compose up -d --build
+```
+
+The SPK skeleton is under `deploy/synology/spk/` for a later Package Center wrapper around the same container service.
 
 ## Command Line
 
