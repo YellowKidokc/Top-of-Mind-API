@@ -1,0 +1,161 @@
+{
+  "schema": "tom_fis.onboarding_questions.v1",
+  "purpose": "Convert onboarding answers into preference axioms used by scanning, naming, prediction, folder building, automation, and review gates.",
+  "rule": "Every question must change at least one behavior lever.",
+  "questions": [
+    {
+      "id": "q01_primary_recall",
+      "text": "When you look for a file later, what do you usually remember first?",
+      "answers": ["project_or_client", "date_or_time", "topic_or_domain", "file_type_or_app"],
+      "axioms": ["primary_navigation_axis", "folder_builder_weight", "rename_schema_bias"],
+      "behavior": "Sets the first organizing axis for folder plans and prediction tie-breaks."
+    },
+    {
+      "id": "q02_personal_business_split",
+      "text": "Should personal and business files stay in separate trees?",
+      "answers": ["always_separate", "usually_separate", "can_mix_by_project", "no_preference"],
+      "axioms": ["separate_business_personal", "cross_domain_review_required"],
+      "behavior": "Controls whether the folder builder may mix personal/business domains."
+    },
+    {
+      "id": "q03_project_vs_domain",
+      "text": "When project and topic disagree, which should win?",
+      "answers": ["project_wins", "domain_wins", "date_wins", "ask_each_time"],
+      "axioms": ["project_domain_priority", "prediction_tiebreaker"],
+      "behavior": "Resolves destination conflicts such as ProjectA/Finance vs Finance/ProjectA."
+    },
+    {
+      "id": "q04_date_importance",
+      "text": "How important are dates in your file and folder names?",
+      "answers": ["always_include_date", "include_for_records", "archive_only", "rarely_include_date"],
+      "axioms": ["date_in_name_policy", "archive_axis", "rename_schema_bias"],
+      "behavior": "Controls date use in naming suggestions and archive structures."
+    },
+    {
+      "id": "q05_default_naming_schema",
+      "text": "Which naming style should be the first default?",
+      "answers": ["clean_snake", "clean_title", "date_project_slug", "domain_date_type"],
+      "axioms": ["rename_schema_default"],
+      "behavior": "Sets the first visible suggestion in Rename Studio."
+    },
+    {
+      "id": "q06_case_style",
+      "text": "How should normal file names be cased?",
+      "answers": ["all_lowercase", "title_case", "preserve_original", "ask_by_folder"],
+      "axioms": ["case_style"],
+      "behavior": "Controls deterministic name normalization."
+    },
+    {
+      "id": "q07_separator_style",
+      "text": "What separator should cleaned names use?",
+      "answers": ["underscore", "hyphen", "space", "preserve_original"],
+      "axioms": ["separator_style"],
+      "behavior": "Controls generated clean names."
+    },
+    {
+      "id": "q08_spelling_cleanup",
+      "text": "Should the system suggest spelling cleanup in filenames?",
+      "answers": ["yes_auto_suggest", "yes_review_only", "flag_only", "never"],
+      "axioms": ["spellcheck_policy"],
+      "behavior": "Controls whether spelling corrections appear as suggestions or warnings."
+    },
+    {
+      "id": "q09_folder_depth",
+      "text": "How deep should normal folders get?",
+      "answers": ["flat_1_to_2", "moderate_3_to_4", "deep_allowed", "mirror_existing"],
+      "axioms": ["folder_depth_limit"],
+      "behavior": "Prevents the folder builder from creating structures the user hates."
+    },
+    {
+      "id": "q10_archive_style",
+      "text": "How should old material be archived?",
+      "answers": ["by_year", "by_project", "by_domain", "do_not_archive_without_approval"],
+      "axioms": ["archive_policy", "archive_review_required"],
+      "behavior": "Controls archive destination proposals and review gates."
+    },
+    {
+      "id": "q11_downloads_handling",
+      "text": "What should happen to messy inbox folders like Downloads?",
+      "answers": ["aggressive_triage", "suggest_batches", "rename_only_first", "observe_only"],
+      "axioms": ["inbox_aggression_level", "bulk_review_threshold"],
+      "behavior": "Controls how strongly the system proposes cleanup from inbox folders."
+    },
+    {
+      "id": "q12_duplicate_policy",
+      "text": "When duplicates are found, what should happen first?",
+      "answers": ["keep_newest", "keep_largest", "keep_all_flag_only", "ask_every_time"],
+      "axioms": ["duplicate_policy", "delete_review_required"],
+      "behavior": "Controls duplicate recommendations while keeping destructive actions gated."
+    },
+    {
+      "id": "q13_unknown_extensions",
+      "text": "How should unknown or weird extensions be treated?",
+      "answers": ["protect_and_label", "quarantine_review", "classify_by_content", "ignore"],
+      "axioms": ["unknown_extension_policy"],
+      "behavior": "Controls scanner labels and blocks unsafe cleanup."
+    },
+    {
+      "id": "q14_program_folders",
+      "text": "What should the system do with program/code/app folders?",
+      "answers": ["never_touch", "scan_only", "allow_rename_docs_only", "ask_by_project"],
+      "axioms": ["program_root_policy"],
+      "behavior": "Controls hard blocks around source code, apps, package roots, and scripts."
+    },
+    {
+      "id": "q15_sensitive_domains",
+      "text": "Which domains need extra caution?",
+      "answers": ["legal_finance_medical", "family_personal", "business_clients", "all_private"],
+      "axioms": ["protected_domains", "privacy_review_required"],
+      "behavior": "Adds review pressure and visibility limits to sensitive domains."
+    },
+    {
+      "id": "q16_media_handling",
+      "text": "How should photos, videos, and audio be organized?",
+      "answers": ["date_first", "event_project_first", "media_type_first", "leave_in_place"],
+      "axioms": ["media_folder_axis", "media_conversion_policy"],
+      "behavior": "Controls media folder proposals and later conversion queues."
+    },
+    {
+      "id": "q17_sync_priority",
+      "text": "What matters most for synced devices?",
+      "answers": ["same_structure_everywhere", "backup_only", "desktop_primary", "nas_primary"],
+      "axioms": ["sync_topology", "node_authority"],
+      "behavior": "Controls whether desktop, laptop, or NAS is authoritative for moves."
+    },
+    {
+      "id": "q18_automation_comfort",
+      "text": "When predictions are confident, what can the system do?",
+      "answers": ["suggest_only", "apply_after_confirm", "auto_low_risk_log", "auto_common_rules"],
+      "axioms": ["automation_level"],
+      "behavior": "Sets trust level ceiling for non-destructive automation."
+    },
+    {
+      "id": "q19_bulk_threshold",
+      "text": "How many files can be changed before you must review first?",
+      "answers": ["any_bulk_needs_review", "over_10", "over_50", "over_200"],
+      "axioms": ["bulk_review_threshold"],
+      "behavior": "Sets review gate thresholds for batch rename/move/archive."
+    },
+    {
+      "id": "q20_undo_expectation",
+      "text": "How important is one-click undo for file changes?",
+      "answers": ["required_for_all_changes", "required_for_bulk", "log_is_enough", "not_important"],
+      "axioms": ["undo_policy", "ledger_requirement"],
+      "behavior": "Controls whether jobs require reversible ledgers before execution."
+    }
+  ],
+  "naming_schemas": {
+    "clean_snake": "quarterly_report_2026_07.pdf",
+    "clean_title": "Quarterly Report 2026 07.pdf",
+    "date_project_slug": "2026-07-03_finance_quarterly_report.pdf",
+    "domain_date_type": "finance_2026-07-03_receipt_walmart.pdf"
+  },
+  "gui_consumers": [
+    "onboarding_constitution",
+    "prediction_board",
+    "rename_studio",
+    "folder_system_builder",
+    "automation_rules",
+    "review_gate_queue"
+  ]
+}

@@ -32,6 +32,11 @@ Useful routes:
 - `/reviews`
 - `/nodes`
 
+## Planning Contracts
+
+- `config/preferences/onboarding_questions.v1.json`: 20-question preference axiom contract.
+- `apps/api/docs/folders/onboarding-questions-gui-flow.md`: how onboarding, scanning, naming, prediction, and GUIs fit together.
+
 ## Run API
 
 ```powershell
