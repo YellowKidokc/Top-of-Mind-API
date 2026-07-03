@@ -25,5 +25,5 @@ fihub-top = "file_intelligence_hub.cli:top_main"
 include = ["file_intelligence_hub*"]
 
 [tool.setuptools.data-files]
-"config" = ["config/folder_profiles.example.json"]
+"config" = ["config/folder_profiles.example.json", "config/top_of_mind/api_actions.example.json"]
 "schemas" = ["schemas/folder_profiles.schema.json"]

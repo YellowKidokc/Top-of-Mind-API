@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from file_intelligence_hub.api.security import ApiTokenMiddleware
 
+from file_intelligence_hub.api.routes_api_actions import router as api_actions_router
 from file_intelligence_hub.api.routes_commands import router as commands_router
 from file_intelligence_hub.api.routes_file_actions import router as file_actions_router
 from file_intelligence_hub.api.routes_file_cache import router as file_cache_router
@@ -19,6 +20,7 @@ from file_intelligence_hub.api.routes_top_of_mind import router as top_of_mind_r
 def create_app() -> FastAPI:
     app = FastAPI(title="File Intelligence Hub", version="0.1.0")
     app.include_router(jobs_router)
+    app.include_router(api_actions_router)
     app.include_router(commands_router)
     app.include_router(file_actions_router)
     app.include_router(file_cache_router)

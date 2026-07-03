@@ -4,7 +4,7 @@ This is the integration standard for keeping the React front end, AutoHotkey bri
 
 ## One-time API menu registry
 
-The React app should treat each command as a saved API action with these fields:
+The React app should load saved actions from `GET /api-actions` and treat each command as a saved API action with these fields:
 
 - `label`: short button/menu text.
 - `endpoint`: Hub API route such as `/folders/search`, `/files/cache/search`, `/jobs/file-events`, or `/top-of-mind/messages`.
@@ -14,7 +14,7 @@ The React app should treat each command as a saved API action with these fields:
 - `result_card`: how to render returned folders, files, jobs, or messages.
 - `ahk_binding`: optional hotkey/button metadata for AutoHotkey launchers.
 
-The operator should enter connection details once, store them locally, and reuse the saved actions from compact menus or swappable panels rather than permanent screen clutter.
+The operator should enter connection details once, store them locally, and reuse the saved actions from compact menus or swappable panels rather than permanent screen clutter. The same action IDs are available to AutoHotkey and future bridge clients so buttons, palettes, and React cards do not drift apart.
 
 ## Layout recommendation
 
@@ -33,5 +33,6 @@ Recommended endpoints:
 - `GET /folders?tag=api` to filter by tag.
 - `GET /folders/search?q=markov` to search names, slugs, tags, and metadata keywords.
 - `GET /folders/tree` to render nested folders.
+- `GET /api-actions?group=folders` to render the folder action menu from the shared registry.
 
 The watcher should continue to create proposals/jobs only. React cards should show proposed folder destinations and require explicit approval before any destructive or organizing action happens.

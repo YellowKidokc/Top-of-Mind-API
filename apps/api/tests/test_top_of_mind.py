@@ -60,3 +60,32 @@ def test_top_of_mind_list_messages_defaults_to_newest_and_unarchived(tmp_path):
 
     assert [message["id"] for message in messages] == [second["id"]]
     assert [message["id"] for message in archived] == [second["id"], first["id"]]
+
+
+def test_api_action_registry_loads_groups_and_filters_actions():
+    from file_intelligence_hub.services.api_action_registry import get_api_action, list_api_actions
+
+    path = "config/top_of_mind/api_actions.example.json"
+    folders = list_api_actions(path, group="folders")
+    action = get_api_action("folders.search", path)
+
+    assert {item["id"] for item in folders["actions"]} == {"folders.search", "folders.tree", "folders.create"}
+    assert action["endpoint"] == "/folders/search"
+    assert action["result_card"]["type"] == "folder_list"
+
+
+def test_api_action_registry_rejects_unsafe_endpoint(tmp_path):
+    from file_intelligence_hub.services.api_action_registry import ApiActionRegistryError, load_api_action_registry
+
+    config = tmp_path / "bad_actions.json"
+    config.write_text(
+        '{"actions":[{"id":"bad","label":"Bad","method":"GET","endpoint":"../secrets"}]}',
+        encoding="utf-8",
+    )
+
+    try:
+        load_api_action_registry(config)
+    except ApiActionRegistryError as exc:
+        assert "safe absolute API path" in str(exc)
+    else:
+        raise AssertionError("expected unsafe endpoint to be rejected")
