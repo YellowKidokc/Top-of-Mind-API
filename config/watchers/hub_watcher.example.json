@@ -1,0 +1,21 @@
+{
+  "source_node_id": "top-ai-fis-desktop-demo",
+  "profiles": [
+    {
+      "path": "runtime/demo/watch-inbox",
+      "folder_role": "inbox",
+      "watch_enabled": true,
+      "review_only": true,
+      "protected": false,
+      "routing_hints": {"queue": "scanner"}
+    },
+    {
+      "path": "runtime/demo/program-root",
+      "folder_role": "program_root",
+      "watch_enabled": true,
+      "review_only": true,
+      "protected": true,
+      "routing_hints": {"queue": "review"}
+    }
+  ]
+}
