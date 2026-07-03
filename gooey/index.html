@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gemini File Intelligence System GUI Portal. Premium desktop operator interface for automated renames, folder builders, rules, and review gates.">
+  <title>Gemini File Intelligence System - GUI Portal</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/gemini-styles.css">
+</head>
+<body>
+
+  <!-- Gemini Application Frame -->
+  <div class="gemini-app-container">
+    
+    <!-- Left Sidebar: Labeled as Gemini Navigation Station -->
+    <aside class="gemini-sidebar">
+      <div class="gemini-logo-container">
+        <h1 class="gemini-logo-title">Gemini<span>FIS</span></h1>
+        <span class="gemini-logo-sub">File Intel System</span>
+      </div>
+      
+      <!-- View Navigation List -->
+      <ul class="gemini-nav-list">
+        <li class="gemini-nav-item active" data-view="onboarding">
+          <button>
+            <span style="font-size:16px;">📋</span>
+            <span>Constitution</span>
+          </button>
+        </li>
+        <li class="gemini-nav-item" data-view="predictions">
+          <button>
+            <span style="font-size:16px;">🔮</span>
+            <span>Predictions</span>
+            <span class="gemini-nav-badge" id="badge-predictions">0</span>
+          </button>
+        </li>
+        <li class="gemini-nav-item" data-view="studio">
+          <button>
+            <span style="font-size:16px;">✏️</span>
+            <span>Rename Studio</span>
+          </button>
+        </li>
+        <li class="gemini-nav-item" data-view="builder">
+          <button>
+            <span style="font-size:16px;">📁</span>
+            <span>Folder Builder</span>
+          </button>
+        </li>
+        <li class="gemini-nav-item" data-view="rules">
+          <button>
+            <span style="font-size:16px;">⚙️</span>
+            <span>Auto Rules</span>
+          </button>
+        </li>
+        <li class="gemini-nav-item" data-view="reviews">
+          <button>
+            <span style="font-size:16px;">🛑</span>
+            <span>Review Gate</span>
+            <span class="gemini-nav-badge" id="badge-reviews" style="background:var(--gemini-red);">0</span>
+          </button>
+        </li>
+      </ul>
+      
+      <!-- Connection Status Card -->
+      <div class="gemini-connection-card">
+        <div class="gemini-connection-status" id="connection-status">
+          <span class="gemini-status-dot offline"></span> Probing API...
+        </div>
+        <button class="gemini-connection-btn" id="connection-btn">Connect API</button>
+      </div>
+    </aside>
+    
+    <!-- Main Panel: Workspace -->
+    <main class="gemini-workspace">
+      
+      <!-- Header bar with state info -->
+      <header class="gemini-header">
+        <div>
+          <h2 class="gemini-view-title" id="view-title">Onboarding Constitution</h2>
+          <p class="gemini-view-description" id="view-desc">Define operating axioms and shape scanner constraints.</p>
+        </div>
+        
+        <!-- Header Statistics Counters -->
+        <div class="gemini-header-stats">
+          <div class="gemini-header-stat">
+            <span>FILES PROCESSED</span>
+            <strong id="stat-files">248</strong>
+          </div>
+          <div class="gemini-header-stat">
+            <span>CONFIDENCE CEILING</span>
+            <strong id="stat-confidence" style="color:var(--gemini-gold);">98%</strong>
+          </div>
+          <div class="gemini-header-stat">
+            <span>OPERATING STATUS</span>
+            <strong id="stat-status" style="color:var(--gemini-green);">READY</strong>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Dynamic Workspace Body -->
+      <div class="gemini-workspace-body" id="workspace-body">
+        <!-- Rendered by Javascript Controller -->
+      </div>
+
+      <!-- Gemini Branded Footer -->
+      <footer style="margin-top: auto; padding: 18px 32px; border-top: 1px solid var(--gemini-line); font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--gemini-text-faint); display: flex; justify-content: space-between; align-items: center; background: rgba(7, 9, 14, 0.4);">
+        <span>Engineered & Built by Gemini AI Agent</span>
+        <span>Version 1.0.0 (Provisional Prototype)</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/gemini-mock-data.js"></script>
+  <script src="js/gemini-app.js"></script>
+</body>
+</html>

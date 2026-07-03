@@ -1,0 +1,30 @@
+---
+fis_schema: tag-ledger.v1
+run_id: 1
+folder: "PICS\\GPT"
+generated_at: "2026-06-23T17:14:16"
+ledger: "D:\\DONT TOUCH BOOT UP\\FIS\\fis_runtime\\tag_ledger.sqlite"
+tags: ["folder", "gpt", "media"]
+file_count: 9
+child_folder_count: 0
+---
+
+# FIS Folder Index: GPT
+
+This folder has been seen by the FIS tag ledger. The ledger records names, tags, skipped items, and move status.
+
+Move state: every listed file starts as `not_moved` until a later approved mover records otherwise.
+
+## Direct Files
+
+- `ChatGPT Image Jun 23, 2026, 01_31_00 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_19 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_25 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_31 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_36 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_41 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_46 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_51 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+- `ChatGPT Image Jun 23, 2026, 01_31_56 PM.png` :: #file #media #image #ext-png #chat #gpt #jun :: move_status=not_moved
+
+<!-- FIS tag-ledger.v1: parseable note; safe to regenerate. -->

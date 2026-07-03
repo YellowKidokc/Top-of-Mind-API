@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Pathways: Neural Decision Protocol</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #000; color: #d4d4d4; padding: 40px 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; font-size: 2rem; margin-bottom: 8px; color: #fff; }
+        .subtitle { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #737373; margin-bottom: 40px; }
+        .trigger-box {
+            background: #0a0a0a; border: 2px solid #333; border-radius: 12px;
+            padding: 24px; text-align: center; max-width: 500px; margin: 0 auto 20px;
+        }
+        .trigger-box h2 { font-size: 1.1rem; color: #fff; margin-bottom: 8px; }
+        .trigger-box p { font-size: 0.85rem; color: #a3a3a3; font-family: 'JetBrains Mono', monospace; }
+        .arrow-down { text-align: center; font-size: 2rem; color: #555; margin: 10px 0; }
+        .fork-label { text-align: center; font-size: 0.9rem; color: #a3a3a3; margin-bottom: 20px; font-style: italic; }        .paths-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        @media (max-width: 900px) { .paths-grid { grid-template-columns: 1fr; } }
+        .path-card {
+            background: #050505; border-radius: 12px; padding: 24px;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+        .path-card.path1 { border: 1px solid #ff3366; }
+        .path-card.path2 { border: 1px solid #ff8c00; }
+        .path-card.path3 { border: 1px solid #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.1); }
+        .path-header { font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+        .path1 .path-header { color: #ff3366; }
+        .path2 .path-header { color: #ff8c00; }
+        .path3 .path-header { color: #00e5ff; }
+        .path-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #737373; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 4px; }
+        .path-value { font-size: 0.9rem; color: #d4d4d4; line-height: 1.5; }
+        .path-value strong { color: #fff; }
+        .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #0a0a0a; border-radius: 6px; }
+        .metric-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #a3a3a3; }
+        .metric-val { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; }
+        .path1 .metric-val { color: #ff3366; }
+        .path2 .metric-val { color: #ff8c00; }
+        .path3 .metric-val { color: #00e5ff; }        .step-chain { display: flex; flex-direction: column; gap: 8px; }
+        .step { padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; }
+        .path1 .step { background: rgba(255,51,102,0.08); border-left: 3px solid #ff3366; }
+        .path2 .step { background: rgba(255,140,0,0.08); border-left: 3px solid #ff8c00; }
+        .path3 .step { background: rgba(0,229,255,0.08); border-left: 3px solid #00e5ff; }
+        .step .step-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.7rem; margin-right: 6px; }
+        .path1 .step-num { color: #ff3366; }
+        .path2 .step-num { color: #ff8c00; }
+        .path3 .step-num { color: #00e5ff; }
+        .trajectory { text-align: center; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; }
+        .path1 .trajectory { background: rgba(255,51,102,0.1); color: #ff3366; }
+        .path2 .trajectory { background: rgba(255,140,0,0.1); color: #ff8c00; }
+        .path3 .trajectory { background: rgba(0,229,255,0.1); color: #00e5ff; }
+        .equation-box {
+            background: #050505; border: 1px solid #171717; border-radius: 12px;
+            padding: 24px; text-align: center; margin-top: 30px;
+        }
+        .equation-box .eq { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; color: #fff; margin: 12px 0; }
+        .equation-box .note { font-size: 0.85rem; color: #a3a3a3; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+        .incompatible-banner {
+            background: linear-gradient(90deg, rgba(255,51,102,0.1), rgba(0,229,255,0.1));
+            border: 1px dashed #555; border-radius: 8px; padding: 16px; text-align: center;
+            margin: 20px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #d4d4d4;
+        }
+    </style>
+</head><body>
+<div class="container">
+    <h1>THE THREE PATHWAYS</h1>
+    <div class="subtitle">Neural Decision Protocol &middot; Why You Can't Fake Path 3</div>
+
+    <div class="trigger-box">
+        <h2>TRIGGER EVENT</h2>
+        <p>Craving, temptation, decision point, stress response.<br>The system must choose a route. Three options. One fork.</p>
+    </div>
+    <div class="arrow-down">&#8595; &#8595; &#8595;</div>
+    <div class="fork-label">Which circuit fires determines the trajectory</div>
+
+    <div class="paths-grid">
+        <!-- PATH 1 -->
+        <div class="path-card path1">
+            <div class="path-header">Path 1: Autonomous Grab</div>
+            <div>
+                <div class="path-label">Protocol</div>
+                <div class="path-value">Want &rarr; Grab &rarr; Consume. No pause. No consultation. No relationship.</div>
+            </div>
+            <div class="step-chain">
+                <div class="step"><span class="step-num">1</span> Craving activates reward circuit</div>
+                <div class="step"><span class="step-num">2</span> Nucleus accumbens fires (400% dopamine)</div>
+                <div class="step"><span class="step-num">3</span> Prefrontal cortex suppressed</div>
+                <div class="step"><span class="step-num">4</span> Receptor desensitization begins</div>
+            </div>            <div class="metric-row"><span class="metric-label">SYSTEM</span><span class="metric-val">CLOSED</span></div>
+            <div class="metric-row"><span class="metric-label">G (Grace)</span><span class="metric-val">0</span></div>
+            <div class="metric-row"><span class="metric-label">O (Observer)</span><span class="metric-val">0</span></div>
+            <div class="metric-row"><span class="metric-label">dC/dt</span><span class="metric-val">&#8722;&#8722;&#8722;</span></div>
+            <div class="metric-row"><span class="metric-label">Primary Chemical</span><span class="metric-val">DOPAMINE (spiking)</span></div>
+            <div class="metric-row"><span class="metric-label">12-Mo Abstinence</span><span class="metric-val">&lt;20%</span></div>
+            <div class="trajectory">&#8594; SLAVERY</div>
+        </div>
+
+        <!-- PATH 2 -->
+        <div class="path-card path2">
+            <div class="path-header">Path 2: Self-Righteous Performance</div>
+            <div>
+                <div class="path-label">Protocol</div>
+                <div class="path-value">"Did I earn this? Am I allowed?" Willpower. Rules. Self-monitoring. The Pharisee circuit.</div>
+            </div>
+            <div class="step-chain">
+                <div class="step"><span class="step-num">1</span> Craving activates executive override</div>
+                <div class="step"><span class="step-num">2</span> dlPFC maxes out (willpower strain)</div>
+                <div class="step"><span class="step-num">3</span> Cortisol floods (stress of self-regulation)</div>
+                <div class="step"><span class="step-num">4</span> Moderate dopamine from sense of control</div>
+            </div>
+            <div class="metric-row"><span class="metric-label">SYSTEM</span><span class="metric-val">CLOSED</span></div>
+            <div class="metric-row"><span class="metric-label">G (Grace)</span><span class="metric-val">0</span></div>
+            <div class="metric-row"><span class="metric-label">O (Observer)</span><span class="metric-val">HIGH (burning out)</span></div>
+            <div class="metric-row"><span class="metric-label">dC/dt</span><span class="metric-val">&asymp; 0 (trending &#8722;)</span></div>
+            <div class="metric-row"><span class="metric-label">Primary Chemical</span><span class="metric-val">CORTISOL (chronic)</span></div>
+            <div class="metric-row"><span class="metric-label">12-Mo Abstinence</span><span class="metric-val">~35% (CBT)</span></div>
+            <div class="trajectory">&#8594; EXHAUSTION</div>
+        </div>
+        <!-- PATH 3 -->
+        <div class="path-card path3">
+            <div class="path-header">Path 3: Grace-Dependent Surrender</div>
+            <div>
+                <div class="path-label">Protocol</div>
+                <div class="path-value"><strong>Thanksgiving</strong> &rarr; <strong>Asking Permission</strong> &rarr; <strong>Listening</strong>. The system opens. External order enters.</div>
+            </div>
+            <div class="step-chain">
+                <div class="step"><span class="step-num">1</span> <strong>THANKSGIVING</strong> &mdash; Oxytocin + serotonin. Parasympathetic activates. Brain shifts from autonomous to relational mode.</div>
+                <div class="step"><span class="step-num">2</span> <strong>ASKING PERMISSION</strong> &mdash; vmPFC fires (social cognition). Cortisol drops. Brain reconfigures from survival to relationship.</div>
+                <div class="step"><span class="step-num">3</span> <strong>LISTENING</strong> &mdash; PFC active but not strained. External signal received. System open to negentropy.</div>
+            </div>
+            <div class="metric-row"><span class="metric-label">SYSTEM</span><span class="metric-val">OPEN</span></div>
+            <div class="metric-row"><span class="metric-label">G (Grace)</span><span class="metric-val">&gt; 0 (ACTIVE)</span></div>
+            <div class="metric-row"><span class="metric-label">O (Observer)</span><span class="metric-val">&gt; 0 (RECEPTIVE)</span></div>
+            <div class="metric-row"><span class="metric-label">dC/dt</span><span class="metric-val">+ + + (POSITIVE)</span></div>
+            <div class="metric-row"><span class="metric-label">Primary Chemical</span><span class="metric-val">OXYTOCIN (sustained)</span></div>
+            <div class="metric-row"><span class="metric-label">12-Mo Abstinence</span><span class="metric-val">~42% (12-Step)</span></div>
+            <div class="trajectory">&#8594; FREEDOM</div>
+        </div>
+    </div>
+
+    <div class="incompatible-banner">
+        &#9888; PHYSIOLOGICALLY INCOMPATIBLE: Parasympathetic (Path 3) and sympathetic grab circuit (Path 1) cannot fire simultaneously. The chemistry enforces honesty. You cannot be grateful and grasping at the same time.
+    </div>
+    <div class="equation-box">
+        <div class="path-label">THE MASTER EQUATION OF RECOVERY</div>
+        <div class="eq">dC/dt = O &middot; G(1&minus;C) &minus; S &middot; C</div>
+        <div class="note">
+            Path 1: G=0, O=0 &rarr; dC/dt = &minus;S&middot;C &rarr; <strong style="color:#ff3366">Exponential decay</strong><br>
+            Path 2: G=0, O=high &rarr; dC/dt &asymp; &minus;S&middot;C &rarr; <strong style="color:#ff8c00">Slow decay under strain</strong><br>
+            Path 3: G&gt;0, O&gt;0 &rarr; dC/dt = O&middot;G(1&minus;C) &minus; S&middot;C &rarr; <strong style="color:#00e5ff">Recovery possible</strong>
+        </div>
+    </div>
+
+    <div class="equation-box" style="margin-top: 20px;">
+        <div class="path-label">WHY "PRAISE EVEN THOUGH YOU DON'T FEEL IT" WORKS</div>
+        <div class="note" style="text-align: left; max-width: 800px;">
+            The brain responds to the <strong>behavioral signal</strong> regardless of the emotional state. When you speak thanksgiving out loud, the vagus nerve activates. The parasympathetic cascade begins. Oxytocin releases. Serotonin increases. The feeling follows the action, not the other way around.<br><br>
+            You're not pretending. You're training the neural pathway before the emotion catches up. The behavior rewires the circuit. This is neuroplasticity operating in real time.<br><br>
+            <strong style="color: #00e5ff;">The fear of the Lord is the beginning of wisdom</strong> — because genuine acknowledgment that you are not the highest authority in your own life is what fires the vmPFC, activates relational circuitry, drops cortisol, and opens the closed system. It is the neural precondition for receiving grace.
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #555;">
+        David Lowe &middot; POF 2828 &middot; Theophysics<br>
+        Cross-Domain Validation: Psychology &middot; Three Pathways Decision Protocol
+    </div>
+</div>
+</body>
+</html>

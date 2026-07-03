@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIS Decision Stream — Claude (Anthropic) · Opus lane</title>
+<!--
+  DESIGN: Claude (Anthropic Opus) — July 3, 2026
+  Thesis: triage is a STREAM problem, not a dashboard problem.
+  One card, one decision, keyboard verbs. Zone 1 stays invisible.
+  Evidence written as prose argument; receipts collapsed.
+  Conflict resolution (local vs API) doubles as the learning signal.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f7f4ee;
+  --card: #fffdf9;
+  --ink: #1c1a17;
+  --ink-soft: #5a544b;
+  --ink-faint: #99917f;
+  --line: #e2dcd0;
+  --line-dark: #c9c0ae;
+  --approve: #1d6b3f;
+  --approve-bg: #e5f2e9;
+  --reject: #9c2b23;
+  --reject-bg: #f7e6e4;
+  --hold: #8a6410;
+  --hold-bg: #f6eed7;
+  --accent: #2b4a8f;
+  --accent-bg: #e8edf8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Source Serif 4", Georgia, serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.mono { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; }
+.sans { font-family: Inter, system-ui, sans-serif; }
+
+/* HEADER — thin ledger strip */
+header {
+  display: flex; align-items: baseline; gap: 20px;
+  max-width: 880px; margin: 0 auto; padding: 26px 24px 14px;
+}
+header h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+header h1 em { font-style: normal; color: var(--accent); }
+.session { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+.session b { color: var(--ink); }
+
+/* PROGRESS LEDGER LINE */
+.ledger {
+  max-width: 880px; margin: 0 auto; padding: 0 24px 18px;
+  display: flex; align-items: center; gap: 14px;
+}
+.track { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; display: flex; }
+.track .done { background: var(--approve); width: 38%; }
+.track .rej { background: var(--reject); width: 7%; }
+.track .cur { background: var(--accent); width: 3%; }
+.ledger .nums { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+
+/* THE CARD */
+.stage { max-width: 880px; margin: 0 auto; padding: 0 24px 30px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--line-dark);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--line-dark), 0 8px 24px rgba(28,26,23,0.07);
+  position: relative;
+}
+.stamp {
+  position: absolute; top: 18px; right: 20px;
+  font-family: Inter, sans-serif; font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 3px; transform: rotate(2deg);
+}
+.stamp.review { background: var(--reject-bg); color: var(--reject); border: 1px solid var(--reject); }
+
+.card-head { padding: 26px 30px 18px; border-bottom: 1px solid var(--line); }
+.eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); font-family: Inter, sans-serif; margin-bottom: 10px; }
+.proposal { font-size: 22px; line-height: 1.35; }
+.proposal .from { text-decoration: line-through; text-decoration-color: var(--reject); text-decoration-thickness: 1.5px; color: var(--ink-faint); }
+.proposal .arrow { color: var(--ink-faint); margin: 0 8px; }
+.proposal .to { font-weight: 600; }
+.proposal .to mark { background: var(--accent-bg); color: var(--accent); padding: 0 3px; border-radius: 2px; }
+.dest { margin-top: 8px; font-size: 13px; color: var(--ink-soft); }
+.dest .mono { color: var(--accent); }
+
+/* WHY — the argument, written as prose */
+.argument { padding: 20px 30px; border-bottom: 1px solid var(--line); }
+.argument h3, .conflict h3, .receipts h3 {
+  font-family: Inter, sans-serif; font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px;
+}
+.argument p { max-width: 65ch; color: var(--ink-soft); }
+.argument p b { color: var(--ink); }
+.argument .quote {
+  margin: 10px 0 0; padding: 8px 14px; border-left: 3px solid var(--accent);
+  background: var(--accent-bg); font-style: italic; font-size: 14px; color: var(--ink);
+  border-radius: 0 3px 3px 0;
+}
+.quote .cite { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--accent); margin-left: 8px; }
+
+/* CONFLICT ROW — only appears when local ≠ API */
+.conflict { padding: 18px 30px; border-bottom: 1px solid var(--line); background: #fbf7ec; }
+.verdicts { display: flex; gap: 14px; }
+.verdict { flex: 1; border: 1px solid var(--line-dark); border-radius: 4px; padding: 10px 14px; background: var(--card); cursor: pointer; }
+.verdict:hover { border-color: var(--accent); }
+.verdict .who { font-family: Inter, sans-serif; font-size: 11px; font-weight: 600; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.1em; }
+.verdict .what { font-size: 15px; font-weight: 600; margin-top: 2px; }
+.verdict .cf { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); }
+.verdict.picked { border-color: var(--approve); background: var(--approve-bg); }
+
+/* RECEIPTS — collapsed by default */
+.receipts { padding: 16px 30px 20px; }
+.receipts summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; font-family: Inter, sans-serif; font-size: 12px; color: var(--ink-soft); }
+.receipts summary::before { content: "▸"; color: var(--ink-faint); }
+.receipts[open] summary::before { content: "▾"; }
+.receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 30px; margin-top: 12px; }
+.rrow { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; border-bottom: 1px dotted var(--line); }
+.rrow .k { color: var(--ink-faint); font-family: Inter, sans-serif; font-size: 11.5px; }
+.rrow .v { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); }
+.rrow .v.warn { color: var(--reject); }
+
+/* VERB BAR — keyboard-first */
+.verbs {
+  display: flex; gap: 10px; padding: 18px 30px 22px;
+  background: linear-gradient(180deg, transparent, #f3efe6);
+  border-top: 1px solid var(--line);
+}
+.verb {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 12px 8px; border-radius: 4px; border: 1px solid var(--line-dark);
+  background: var(--card); cursor: pointer; font-family: Inter, sans-serif;
+}
+.verb:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(28,26,23,0.1); }
+.verb .key {
+  font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--line-dark); border-bottom-width: 2px; border-radius: 4px;
+  padding: 1px 8px; background: var(--paper); color: var(--ink-soft);
+}
+.verb .label { font-size: 12.5px; font-weight: 600; }
+.verb.approve { border-color: var(--approve); } .verb.approve .label { color: var(--approve); }
+.verb.reject { border-color: var(--reject); } .verb.reject .label { color: var(--reject); }
+.verb.edit .label { color: var(--accent); }
+.verb.hold .label { color: var(--hold); }
+
+/* UP NEXT — peek strip */
+.upnext { max-width: 880px; margin: 0 auto; padding: 0 24px 40px; }
+.upnext h4 { font-family: Inter, sans-serif; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+.peek { display: flex; flex-direction: column; gap: 6px; }
+.peek-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 4px;
+  padding: 9px 16px; font-size: 13px; color: var(--ink-soft); opacity: 0.85;
+}
+.peek-item .n { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); }
+.peek-item .kind { font-family: Inter, sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; }
+.kind.batch { background: var(--hold-bg); color: var(--hold); }
+.kind.single { background: var(--accent-bg); color: var(--accent); }
+.peek-item .cnt { margin-left: auto; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); }
+
+.footnote { max-width: 880px; margin: 0 auto; padding: 0 24px 30px; font-size: 11.5px; color: var(--ink-faint); font-family: Inter, sans-serif; }
+.footnote kbd { font-family: "IBM Plex Mono", monospace; border: 1px solid var(--line-dark); border-radius: 3px; padding: 0 5px; background: var(--card); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>FIS <em>Decision Stream</em> <span class="sans" style="font-size:11px; font-weight:600; letter-spacing:0.1em; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:2px 8px; vertical-align:middle; text-transform:uppercase;">Design: Claude · Anthropic</span></h1>
+  <div class="session">Session: <b>morning triage</b> · desktop-01 · ledger synced 06:41</div>
+</header>
+
+<div class="ledger">
+  <div class="track"><div class="done"></div><div class="rej"></div><div class="cur"></div></div>
+  <div class="nums"><b style="color:var(--approve)">17 approved</b> · <b style="color:var(--reject)">3 rejected</b> · 27 remaining · ~4 min at current pace</div>
+</div>
+
+<div class="stage">
+  <div class="card">
+    <div class="stamp review">Needs You · 0.54</div>
+
+    <div class="card-head">
+      <div class="eyebrow">Rename + Move · Item 21 of 47 · flagged: local ≠ API</div>
+      <div class="proposal">
+        <span class="from">final_FINAL_v2 (3) copy.pdf</span><span class="arrow">→</span><br>
+        <span class="to">2026-06-28_<mark>templeton-ofi-2_universality</mark>_v4.pdf</span>
+      </div>
+      <div class="dest">Destination: <span class="mono">O:\Grants\Templeton\</span> &nbsp;·&nbsp; near-duplicate of v3 (0.94 semantic)</div>
+    </div>
+
+    <div class="argument">
+      <h3>The Case</h3>
+      <p>This is a <b>14-page PDF</b> pulled from Downloads, last touched June 28. The local classifier reads it as a <b>grant document</b> because the first page names the funder and a budget figure. The API reads it as a <b>research paper</b> because the body is dominated by framework-universality argument. Both are right about what they saw — the question is which folder it lives in.</p>
+      <div class="quote">"Templeton Foundation Open Funding Initiative … budget of $230,000 over 30 months"<span class="cite">p.1, w=0.58</span></div>
+      <div class="quote">"framework universality across ten domains constitutes the central claim"<span class="cite">p.3, w=0.42</span></div>
+    </div>
+
+    <div class="conflict">
+      <h3>Two Verdicts — Pick One (or Edit)</h3>
+      <div class="verdicts">
+        <div class="verdict picked">
+          <div class="who">Local classifier</div>
+          <div class="what">grants / templeton</div>
+          <div class="cf">confidence 0.61 · rule: funder-on-p1</div>
+        </div>
+        <div class="verdict">
+          <div class="who">API enrichment</div>
+          <div class="what">papers / universality</div>
+          <div class="cf">confidence 0.71 · semantic body match</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="receipts">
+      <summary>Receipts — hashes, trace, duplicates</summary>
+      <div class="receipt-grid">
+        <div class="rrow"><span class="k">sha256</span><span class="v">9f2ab4…c17e</span></div>
+        <div class="rrow"><span class="k">content_hash</span><span class="v warn">e77b…04 · matches 2 files</span></div>
+        <div class="rrow"><span class="k">quick_hash</span><span class="v">a11f…9d</span></div>
+        <div class="rrow"><span class="k">structure_hash</span><span class="v">b3c9…5a</span></div>
+        <div class="rrow"><span class="k">parser</span><span class="v">PyMuPDF · text-layer OK</span></div>
+        <div class="rrow"><span class="k">route history</span><span class="v">watch → classify → api → review</span></div>
+      </div>
+    </details>
+
+    <div class="verbs">
+      <div class="verb approve"><span class="key">A</span><span class="label">Approve</span></div>
+      <div class="verb reject"><span class="key">R</span><span class="label">Reject + why</span></div>
+      <div class="verb edit"><span class="key">E</span><span class="label">Edit name</span></div>
+      <div class="verb hold"><span class="key">S</span><span class="label">Skip / hold</span></div>
+      <div class="verb"><span class="key">D</span><span class="label">Show duplicates</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="upnext">
+  <h4>Up Next</h4>
+  <div class="peek">
+    <div class="peek-item"><span class="n">22</span><span class="kind batch">Batch</span> Move 41 GTQ files → T:\1111genesis-to-quantum\_intake <span class="cnt">one decision</span></div>
+    <div class="peek-item"><span class="n">23</span><span class="kind single">Single</span> Untitled document (7).docx → law-9_noether-subsection_v1 <span class="cnt">0.58</span></div>
+    <div class="peek-item"><span class="n">24</span><span class="kind batch">Batch</span> Archive 12 stale Downloads files → Z:\_archive\2026-07 <span class="cnt">one decision</span></div>
+  </div>
+</div>
+
+<div class="footnote">Keyboard-first: <kbd>A</kbd> approve · <kbd>R</kbd> reject · <kbd>E</kbd> edit · <kbd>S</kbd> skip · <kbd>D</kbd> duplicates · <kbd>J</kbd>/<kbd>K</kbd> peek queue · Zone 1 never appears here — it runs silent and lands in the audit export.<br><br><b>Design: Claude (Anthropic Opus) · July 3, 2026</b> — thesis: triage is a stream, not a dashboard. See header comment in source for the full argument.</div>
+
+<script>
+document.querySelectorAll('.verdict').forEach(v => v.addEventListener('click', () => {
+  document.querySelectorAll('.verdict').forEach(x => x.classList.remove('picked'));
+  v.classList.add('picked');
+}));
+</script>
+</body>
+</html>

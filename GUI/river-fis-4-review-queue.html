@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>River FIS — Review Queue (Operator Cockpit)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080808;
+  --surface: #0f0f10;
+  --surface2: #17181b;
+  --surface3: #202229;
+  --border: #2b2d36;
+  --border-hover: #d4af37;
+  --gold: #d4af37;
+  --gold-dim: rgba(212,175,55,0.14);
+  --gold-glow: rgba(212,175,55,0.22);
+  --amber: #fbbf24;
+  --text: #e6e6e6;
+  --text-dim: #989ba6;
+  --text-muted: #5b5d66;
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,0.12);
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.12);
+  --amber-dim: rgba(251,191,36,0.12);
+  --teal: #2dd4bf;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.55;
+  font-size: 14px;
+}
+.serif { font-family: "Crimson Text", serif; }
+.mono { font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+.window {
+  max-width: 1320px;
+  margin: 24px auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+}
+.titlebar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, #111114, #0c0c0e);
+  border-bottom: 1px solid var(--border);
+}
+.dots { display: flex; gap: 8px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+.brand { margin-left: 8px; font-weight: 800; letter-spacing: 0.18em; font-size: 12.5px; }
+.brand span { color: var(--gold); }
+.titlebar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--text-dim); }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); display: inline-block; margin-right: 6px; }
+
+.layout { display: grid; grid-template-columns: 210px 1fr 400px; min-height: 760px; }
+
+/* LEFT RAIL — lanes */
+.rail { background: var(--surface2); border-right: 1px solid var(--border); padding: 18px 0; }
+.rail h4 { font-size: 10.5px; letter-spacing: 0.16em; color: var(--text-muted); text-transform: uppercase; padding: 0 18px 8px; }
+.lane { display: flex; align-items: center; gap: 10px; padding: 9px 18px; cursor: pointer; color: var(--text-dim); font-size: 13px; border-left: 2px solid transparent; }
+.lane:hover { background: var(--surface3); color: var(--text); }
+.lane.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
+.lane .count { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 9px; background: var(--surface3); color: var(--text-dim); }
+.lane .count.hot { background: var(--red-dim); color: var(--red); }
+.lane .count.warm { background: var(--amber-dim); color: var(--amber); }
+.rail .divider { height: 1px; background: var(--border); margin: 14px 18px; }
+
+/* CENTER — queue */
+.center { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+.toolbar { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+.search { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; color: var(--text-dim); }
+.search input { flex: 1; background: transparent; border: 0; outline: none; color: var(--text); font-size: 13px; font-family: inherit; }
+.chip { font-size: 11.5px; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; user-select: none; }
+.chip.on { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+.zone-strip { display: flex; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: #0c0c0e; }
+.zone { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.zone .zl { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+.zone .zn { font-size: 20px; font-weight: 700; }
+.zone .zd { font-size: 11px; color: var(--text-muted); }
+.zone.safe { border-color: rgba(52,211,153,0.35); } .zone.safe .zl { color: var(--green); }
+.zone.thresh { border-color: rgba(251,191,36,0.35); } .zone.thresh .zl { color: var(--amber); }
+.zone.manual { border-color: rgba(248,113,113,0.35); } .zone.manual .zl { color: var(--red); }
+
+.queue { flex: 1; overflow-y: auto; }
+.row { display: grid; grid-template-columns: 26px 1fr 120px 90px; gap: 12px; align-items: center; padding: 12px 18px; border-bottom: 1px solid #141519; cursor: pointer; }
+.row:hover { background: var(--surface2); }
+.row.selected { background: var(--gold-dim); border-left: 2px solid var(--gold); }
+.zbadge { width: 10px; height: 10px; border-radius: 3px; }
+.zbadge.z3 { background: var(--red); } .zbadge.z2 { background: var(--amber); } .zbadge.z1 { background: var(--green); }
+.rename { min-width: 0; }
+.rename .old { color: var(--text-muted); text-decoration: line-through; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rename .new { color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rename .new b { color: var(--gold); font-weight: 600; }
+.reason { font-size: 11px; color: var(--text-dim); }
+.reason .tag { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 10.5px; margin-top: 2px; }
+.tag.lowconf { background: var(--red-dim); color: var(--red); }
+.tag.disagree { background: rgba(167,139,250,0.14); color: var(--purple); }
+.tag.unknown { background: var(--amber-dim); color: var(--amber); }
+.tag.batch { background: var(--amber-dim); color: var(--amber); }
+.conf { text-align: right; }
+.confbar { height: 4px; border-radius: 2px; background: var(--surface3); margin-top: 4px; overflow: hidden; }
+.confbar i { display: block; height: 100%; }
+
+.bulkbar { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--border); background: #0c0c0e; }
+.btn { border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 12.5px; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+.btn:hover { border-color: var(--border-hover); }
+.btn.primary { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); font-weight: 600; }
+.btn.danger { border-color: rgba(248,113,113,0.5); color: var(--red); }
+.threshold-note { margin-left: auto; font-size: 11.5px; color: var(--amber); }
+
+/* RIGHT — evidence pane */
+.evidence { background: var(--surface2); padding: 18px; overflow-y: auto; }
+.evidence h3 { font-size: 13px; letter-spacing: 0.06em; margin-bottom: 4px; }
+.evidence .path { font-size: 11px; color: var(--text-muted); word-break: break-all; margin-bottom: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.card h5 { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.kv { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+.kv .k { color: var(--text-dim); }
+.kv .v { color: var(--text); }
+.span-quote { border-left: 2px solid var(--gold); padding: 6px 10px; margin: 6px 0; background: var(--gold-dim); font-size: 12px; color: var(--text-dim); font-style: italic; border-radius: 0 6px 6px 0; }
+.span-quote .w { color: var(--gold); font-style: normal; font-size: 10.5px; }
+.hashrow { display: grid; grid-template-columns: 120px 1fr; gap: 6px; font-size: 11px; padding: 3px 0; }
+.hashrow .hk { color: var(--text-dim); }
+.hashrow .hv { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hashrow .hv.match { color: var(--red); }
+.actions { display: flex; gap: 8px; margin-top: 4px; }
+.actions .btn { flex: 1; text-align: center; }
+.reject-reasons { display: none; margin-top: 10px; gap: 6px; flex-wrap: wrap; }
+.reject-reasons.show { display: flex; }
+.rr { font-size: 11px; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--red); color: var(--red); cursor: pointer; }
+.rr:hover { background: var(--red-dim); }
+.trace { font-size: 11px; color: var(--text-dim); }
+.trace li { list-style: none; padding: 3px 0 3px 14px; position: relative; }
+.trace li::before { content: "›"; position: absolute; left: 0; color: var(--gold); }
+.footer-note { text-align: center; font-size: 11px; color: var(--text-muted); padding: 10px; }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar">
+    <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <div class="brand">RIVER <span>FIS</span> · REVIEW QUEUE</div>
+    <div class="titlebar-right">
+      <span><span class="pulse"></span>watcher: 3 nodes</span>
+      <span class="mono">ledger: fis.db</span>
+      <span class="mono" style="color:var(--amber)">queue: 47</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT RAIL -->
+    <nav class="rail">
+      <h4>Review Lanes</h4>
+      <div class="lane active">Rename suggestions <span class="count hot">23</span></div>
+      <div class="lane">Move / route <span class="count warm">11</span></div>
+      <div class="lane">Archive batch <span class="count warm">6</span></div>
+      <div class="lane">Delete batch <span class="count hot">2</span></div>
+      <div class="lane">Unknown families <span class="count">4</span></div>
+      <div class="lane">API disagreements <span class="count">1</span></div>
+      <div class="divider"></div>
+      <h4>System</h4>
+      <div class="lane">Jobs &amp; failures <span class="count hot">3</span></div>
+      <div class="lane">Event log</div>
+      <div class="lane">Folder profiles</div>
+      <div class="lane">Paired assets <span class="count warm">2</span></div>
+      <div class="lane">Audit export</div>
+      <div class="divider"></div>
+      <h4>Nodes</h4>
+      <div class="lane">desktop-01 <span class="count" style="color:var(--green)">OK</span></div>
+      <div class="lane">laptop-hp <span class="count" style="color:var(--green)">OK</span></div>
+      <div class="lane">forge-hub <span class="count" style="color:var(--amber)">HOT</span></div>
+    </nav>
+
+    <!-- CENTER QUEUE -->
+    <main class="center">
+      <div class="toolbar">
+        <div class="search">⌕ <input placeholder="search filename, tag, extension, folder…" /></div>
+        <span class="chip on">Zone 3</span>
+        <span class="chip on">Zone 2</span>
+        <span class="chip">Zone 1</span>
+        <span class="chip">conf &lt; 0.6</span>
+        <span class="chip">.pdf</span>
+        <span class="chip">.md</span>
+      </div>
+
+      <div class="zone-strip">
+        <div class="zone safe"><div class="zl">Zone 1 · Auto-safe</div><div class="zn">312</div><div class="zd">applied &amp; logged today</div></div>
+        <div class="zone thresh"><div class="zl">Zone 2 · Threshold</div><div class="zn">17</div><div class="zd">batches awaiting confirm</div></div>
+        <div class="zone manual"><div class="zl">Zone 3 · Manual</div><div class="zn">30</div><div class="zd">item-by-item review</div></div>
+      </div>
+
+      <div class="queue">
+        <div class="row selected">
+          <div class="zbadge z3"></div>
+          <div class="rename">
+            <div class="old">final_FINAL_v2 (3) copy.pdf</div>
+            <div class="new">2026-06-28_<b>templeton-ofi-2_universality-draft</b>_v4.pdf</div>
+            <div class="reason"><span class="tag lowconf">low confidence</span> <span class="tag disagree">API ≠ local</span></div>
+          </div>
+          <div class="reason">domain: grants<br>parser: PyMuPDF</div>
+          <div class="conf mono">0.54<div class="confbar"><i style="width:54%;background:var(--red)"></i></div></div>
+        </div>
+
+        <div class="row">
+          <div class="zbadge z3"></div>
+          <div class="rename">
+            <div class="old">Untitled document (7).docx</div>
+            <div class="new">law-9_<b>noether-subsection</b>_draft_v1.docx</div>
+            <div class="reason"><span class="tag lowconf">low confidence</span></div>
+          </div>
+          <div class="reason">domain: theophysics<br>parser: python-docx</div>
+          <div class="conf mono">0.58<div class="confbar"><i style="width:58%;background:var(--red)"></i></div></div>
+        </div>
+
+        <div class="row">
+          <div class="zbadge z3"></div>
+          <div class="rename">
+            <div class="old">export_889123.bin</div>
+            <div class="new">— unknown family —</div>
+            <div class="reason"><span class="tag unknown">unknown extension</span></div>
+          </div>
+          <div class="reason">route: quarantine<br>parser: filetype</div>
+          <div class="conf mono">0.31<div class="confbar"><i style="width:31%;background:var(--red)"></i></div></div>
+        </div>
+
+        <div class="row">
+          <div class="zbadge z2"></div>
+          <div class="rename">
+            <div class="old">GTQ scratch folder → 41 files</div>
+            <div class="new">move batch → <b>T:\1111genesis-to-quantum\_intake</b></div>
+            <div class="reason"><span class="tag batch">batch over threshold (41 &gt; 25)</span></div>
+          </div>
+          <div class="reason">folder profile:<br>gtq-series / html+audio</div>
+          <div class="conf mono">0.91<div class="confbar"><i style="width:91%;background:var(--amber)"></i></div></div>
+        </div>
+
+        <div class="row">
+          <div class="zbadge z2"></div>
+          <div class="rename">
+            <div class="old">Downloads sweep → 12 files</div>
+            <div class="new">archive batch → <b>Z:\_archive\2026-07</b></div>
+            <div class="reason"><span class="tag batch">stale &gt; 90 days</span></div>
+          </div>
+          <div class="reason">dominant: pdf, png<br>dup rate: 33%</div>
+          <div class="conf mono">0.88<div class="confbar"><i style="width:88%;background:var(--amber)"></i></div></div>
+        </div>
+
+        <div class="row">
+          <div class="zbadge z1"></div>
+          <div class="rename">
+            <div class="old">IMG_20260702_231544.png</div>
+            <div class="new">2026-07-02_<b>viz_law-4-fruits-vector</b>.png</div>
+            <div class="reason">auto-applied · logged</div>
+          </div>
+          <div class="reason">paired: .html ✓ .md ✓</div>
+          <div class="conf mono">0.97<div class="confbar"><i style="width:97%;background:var(--green)"></i></div></div>
+        </div>
+      </div>
+
+      <div class="bulkbar">
+        <button class="btn primary">Approve selected</button>
+        <button class="btn">Approve all ≥ 0.85</button>
+        <button class="btn danger">Reject selected</button>
+        <button class="btn">Requeue → API arbitration</button>
+        <span class="threshold-note">⚠ 2 delete batches exceed threshold — item review required</span>
+      </div>
+    </main>
+
+    <!-- RIGHT EVIDENCE PANE -->
+    <aside class="evidence">
+      <h3 class="serif">templeton-ofi-2_universality-draft_v4.pdf</h3>
+      <div class="path mono">D:\Downloads\final_FINAL_v2 (3) copy.pdf</div>
+
+      <div class="card">
+        <h5>Suggestion</h5>
+        <div class="kv"><span class="k">Action</span><span class="v">rename + move → O:\Grants\Templeton</span></div>
+        <div class="kv"><span class="k">Confidence</span><span class="v" style="color:var(--red)">0.54 — below auto floor (0.80)</span></div>
+        <div class="kv"><span class="k">Why flagged</span><span class="v">local classifier ≠ API domain</span></div>
+        <div class="kv"><span class="k">Local says</span><span class="v">grants / templeton</span></div>
+        <div class="kv"><span class="k">API says</span><span class="v">papers / universality</span></div>
+        <div class="actions">
+          <button class="btn primary">Approve</button>
+          <button class="btn danger" onclick="document.getElementById('rr').classList.toggle('show')">Reject</button>
+        </div>
+        <div class="reject-reasons" id="rr">
+          <span class="rr">wrong domain</span>
+          <span class="rr">wrong version</span>
+          <span class="rr">keep original name</span>
+          <span class="rr">wrong destination</span>
+          <span class="rr">other…</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h5>Evidence Spans</h5>
+        <div class="span-quote">"…framework universality across ten domains…" <span class="w">w=0.42 · p.1</span></div>
+        <div class="span-quote">"Templeton Foundation Open Funding Initiative" <span class="w">w=0.38 · p.1</span></div>
+        <div class="span-quote">"budget: $230,000 over 30 months" <span class="w">w=0.20 · p.14</span></div>
+      </div>
+
+      <div class="card">
+        <h5>Hash Family (MDA)</h5>
+        <div class="hashrow"><span class="hk mono">sha256</span><span class="hv mono">9f2ab4…c17e</span></div>
+        <div class="hashrow"><span class="hk mono">quick_hash</span><span class="hv mono">a11f…9d</span></div>
+        <div class="hashrow"><span class="hk mono">content_hash</span><span class="hv mono match">e77b…04 — matches 2 files ⚠</span></div>
+        <div class="hashrow"><span class="hk mono">structure_hash</span><span class="hv mono">b3c9…5a</span></div>
+        <div class="hashrow"><span class="hk mono">semantic_sig</span><span class="hv mono">near-dup: v3 (0.94)</span></div>
+      </div>
+
+      <div class="card">
+        <h5>Parser Trace</h5>
+        <ul class="trace">
+          <li>filetype → application/pdf (0.99)</li>
+          <li>PyMuPDF → 14 pages, text-layer OK</li>
+          <li>classifier_rules → grants (0.61)</li>
+          <li>api_enrich → papers (0.71) — conflict</li>
+          <li>route → manual_review_requested</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="footer-note mono">river-fis-4 · operator cockpit · static template — wire to /api/review, /api/actions, /api/jobs</div>
+</body>
+</html>

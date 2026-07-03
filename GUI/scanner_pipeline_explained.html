@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner Pipeline — Detection to Action</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--panel:#161922;--p2:#1c2030;--line:#262d3d;--amber:#d9a441;--cyan:#5fb3ae;--ink:#e4e1d8;--dim:#8f96a3;--faint:#555d6e;--green:#4ade80;--red:#ef4444;--purple:#a78bfa;--r:8px}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;padding:28px;max-width:1050px;margin:0 auto}
+h1{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--amber);margin-bottom:4px}
+.sub{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);margin-bottom:36px}
+h2{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.6px;color:var(--faint);margin:40px 0 18px;display:flex;align-items:center;gap:8px}
+h2::before{content:'';width:5px;height:5px;background:var(--amber);border-radius:50%}
+h3{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--cyan);margin:22px 0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;margin-bottom:14px}
+.card b{color:var(--ink)}
+.card p,.card li{color:var(--dim);font-size:13.5px;margin:4px 0}
+.card ul{padding-left:18px}
+.card li{margin:5px 0}
+.label{font-family:'IBM Plex Mono',monospace;font-size:11px;display:inline-block;padding:2px 8px;border-radius:4px;margin:2px 3px 2px 0}
+.l-green{background:#16653433;color:#86efac;border:1px solid #16653466}
+.l-amber{background:#854d0e33;color:#fde68a;border:1px solid #854d0e66}
+.l-red{background:#991b1b33;color:#fca5a5;border:1px solid #991b1b66}
+.l-cyan{background:#155e7533;color:#67e8f9;border:1px solid #155e7566}
+.l-purple{background:#312e8133;color:#c4b5fd;border:1px solid #312e8166}
+.l-gray{background:#1e293b;color:#94a3b8;border:1px solid #33415566}
+code{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--p2);padding:2px 6px;border-radius:4px;color:var(--cyan)}
+pre{background:var(--p2);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);overflow-x:auto;margin:10px 0 16px;line-height:1.6}
+.arrow{text-align:center;font-size:20px;color:var(--faint);margin:10px 0}
+.divider{height:1px;background:var(--line);margin:36px 0}
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.q-grid{grid-template-columns:1fr}}
+.q-card{background:var(--p2);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.q-num{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--amber);font-size:13px}
+.q-text{font-size:12.5px;color:var(--ink);margin-top:4px}
+.q-learns{font-size:11.5px;color:var(--faint);margin-top:4px;font-style:italic}
+.example{background:var(--panel);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:14px 18px;margin:12px 0;font-size:13px}
+.example b{color:var(--amber)}
+.action-row{display:flex;gap:12px;align-items:flex-start;margin:10px 0;flex-wrap:wrap}
+.action-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.action-body{flex:1;min-width:200px}
+.action-body b{font-size:13.5px}
+.action-body p{font-size:12.5px;color:var(--faint);margin:2px 0}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+
+<h1>The Scanner Pipeline: Detection → Learning → Action</h1>
+<div class="sub">What the 20 questions learn, how symptoms are found and labeled, and exactly what happens to 10,000 files in a folder.</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 1: The 20 Questions — What Each One Learns</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p style="margin-bottom:16px">The scanner asks 20 questions about every folder it enters. Each question produces a specific, actionable fact. Nothing is vague. Every answer feeds the next step.</p>
+
+<div class="q-grid">
+
+<div class="q-card">
+<div class="q-num">Q1 — What file types are here?</div>
+<div class="q-text">Count unique extensions per directory.</div>
+<div class="q-learns">Learns: Is this a focused project folder or a dumping ground? >8 types = extension swamp (S01).</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q2 — Are there duplicate versions?</div>
+<div class="q-text">Regex for _v1, _v2, _FINAL, _copy, (1), (2).</div>
+<div class="q-learns">Learns: Which files are version sprawl (S02) and which is the real current one.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q3 — How deep is the tree?</div>
+<div class="q-text">Walk depth. Flag paths >5 levels with <3 files at leaf.</div>
+<div class="q-learns">Learns: Depth explosion (S03). The path exists but nothing useful is down there.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q4 — How wide is each directory?</div>
+<div class="q-text">Count files per dir. Flag >200.</div>
+<div class="q-learns">Learns: Flat overload (S04). This is the "10,000 files" problem — scroll paralysis.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q5 — Are there orphan sidecars?</div>
+<div class="q-text">Find .chi, .fmeta, .srt, .meta.json without a parent file.</div>
+<div class="q-learns">Learns: Dead metadata (S05). The parent was moved or deleted.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q6 — Are names colliding?</div>
+<div class="q-text">Case-insensitive match within same directory.</div>
+<div class="q-learns">Learns: Naming collision (S06). report.md vs Report.md vs REPORT.md — which is canonical?</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q7 — Is one project scattered?</div>
+<div class="q-text">Detect shared keywords/project markers across distant directories.</div>
+<div class="q-learns">Learns: Project scatter (S07). Theophysics files in D:\, O:\, Z:\, and Downloads.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q8 — Are there broken links?</div>
+<div class="q-text">Parse markdown/HTML links, check if targets exist.</div>
+<div class="q-learns">Learns: Phantom references (S08). [[deleted_page]] in Obsidian.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q9 — Are files duplicated?</div>
+<div class="q-text">Group by size, then MD5 hash identical files.</div>
+<div class="q-learns">Learns: Duplicate clusters (C01). Same PDF in 3 folders — which is the keeper?</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q10 — Same content, different formats?</div>
+<div class="q-text">Same stem as .md + .html + .pdf + .docx.</div>
+<div class="q-learns">Learns: Format redundancy (C02). Edits only get applied to one format.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q11 — Are there abandoned drafts?</div>
+<div class="q-text">Regex for draft/wip/old/temp in name + age >30 days.</div>
+<div class="q-learns">Learns: Draft graveyard (C03). Good ideas buried in files nobody opens.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q12 — Are doc types mixed randomly?</div>
+<div class="q-text">3+ doc types (.pdf/.docx/.xlsx) in one dir with no grouping.</div>
+<div class="q-learns">Learns: Document chaos (C04). Budget spreadsheet next to sermon notes next to code.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q13 — Are media files auto-named?</div>
+<div class="q-text">Match IMG_, DSC_, Screenshot_, VID_ patterns.</div>
+<div class="q-learns">Learns: Media dump (C05). 500 photos named IMG_4587.jpg.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q14 — Are there unknown file types?</div>
+<div class="q-text">Extension not in the known-extension list.</div>
+<div class="q-learns">Learns: Unknown blobs (C06). Could be anything. Quarantine first.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q15 — How old are the files?</div>
+<div class="q-text">Compare file ages to folder activity. Stale files in active dirs.</div>
+<div class="q-learns">Learns: Time bombs (T01) and abandoned workspaces (T04). Forgotten files in busy folders.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q16 — Is this a program root?</div>
+<div class="q-text">Check for .git, package.json, pyproject.toml, venv.</div>
+<div class="q-learns">Learns: Program root danger (I01). NEVER auto-move. Mark as PROTECTED.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q17 — Are credentials exposed?</div>
+<div class="q-text">Find .env files, scan for api_key=, sk-, AKIA patterns.</div>
+<div class="q-learns">Learns: Config leak (I03). CRITICAL. Alert immediately.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q18 — Are sync conflicts present?</div>
+<div class="q-text">Match "sync-conflict", "conflicted copy" in filenames.</div>
+<div class="q-learns">Learns: Sync ghosts (I04). OneDrive/Syncthing created duplicates.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q19 — Are research files tagged?</div>
+<div class="q-text">Check for .chi sidecar or chi_catalog entry for canonical files.</div>
+<div class="q-learns">Learns: Untagged canonical (R01). Important work that the system can't classify.</div>
+</div>
+
+<div class="q-card">
+<div class="q-num">Q20 — What's the chi-variable signature?</div>
+<div class="q-text">Run the semantic scorer: 250 signal words → 10 variable scores → coordinate hash.</div>
+<div class="q-learns">Learns: THE IDENTITY OF EVERY FILE. G=0.8, M=0.2, E=0.9... → hash GEC-3K5A-3F. This is the semantic address.</div>
+</div>
+
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 2: How Learning Flows Into Action</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p style="margin-bottom:16px">Every question produces a <b>label</b>. Labels accumulate into a <b>diagnosis</b>. The diagnosis produces a <b>treatment plan</b>. The plan creates <b>jobs</b>. Jobs go through <b>review gates</b>. Approved jobs become <b>actions</b>.</p>
+
+<pre>
+FILES ON DISK
+    │
+    ▼
+┌──────────────────────┐
+│  Q1-Q20: DETECTION   │  "What's wrong here?"
+│  20 questions asked   │
+│  per directory        │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  LABELING            │  Each file and folder gets labels:
+│  - Symptom IDs       │    S01, C01, I03, etc.
+│  - Severity          │    low / medium / high / critical
+│  - Chi signature     │    GKC-3K5A-3F
+│  - Meta class        │    PERSONAL.CREATION.CAPTURE.ACTIVE
+│  - Folder role       │    intake_hub / research / program_root
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  DIAGNOSIS           │  Per-folder health report:
+│  - Grade A-F         │    "Downloads: D (38/100)"
+│  - Symptom list      │    "S04 flat overload (10,247 files)"
+│  - Dominant problem  │    "C01 duplicates (340 clusters)"
+│  - Trend vs last     │    "↓ 12 pts since last scan"
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  TREATMENT PLAN      │  Prioritized work order:
+│  - Auto-fixable      │    "Delete 89 empty folders" (auto)
+│  - Needs review      │    "Rename 47 IMG_ files" (review)
+│  - Needs human       │    "Resolve 12 sync conflicts" (manual)
+│  - NEVER touch       │    "3 program roots detected" (protect)
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  JOB CREATION        │  Each treatment step → durable job:
+│  - job_type          │    "rename_suggest" / "archive_apply"
+│  - target_path       │    the actual file or folder
+│  - priority          │    40001-40010
+│  - review_required   │    true/false
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  REVIEW GATE         │  Safety valve:
+│  - Bulk >20? → STOP  │    human approves in the UI
+│  - Delete? → STOP    │    ALWAYS requires approval
+│  - Program root? →   │    BLOCK entirely
+│    BLOCK             │
+│  - Low confidence?   │    escalate to Ollama/OpenAI
+│  - Auto-fixable +    │
+│    safe? → PROCEED   │    execute immediately
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  ACTION EXECUTION    │  What actually happens:
+│  - rename file       │    old name → new name (logged)
+│  - move file         │    source → destination (logged)
+│  - archive file      │    move to .archive/ (reversible)
+│  - delete file       │    move to .trash/ (reversible)
+│  - create folder     │    new subfolder structure
+│  - write sidecar     │    .chi metadata file
+│  - update memory     │    store result in shared API
+│  - notify            │    ntfy push to phone
+└──────────────────────┘
+</pre>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 3: How Symptoms Are Labeled</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p style="margin-bottom:16px">Every symptom the scanner finds gets a structured label. This is the language the system speaks.</p>
+
+<div class="card">
+<b>Symptom Label Structure</b>
+<pre>
+{
+  "symptom_id": "S04",                    // Which symptom
+  "category":   "Structural",             // Which family
+  "severity":   "medium",                 // low / medium / high / critical
+  "name":       "Flat overload",          // Human-readable name
+  "count":      1,                        // How many instances found
+  "auto_fixable": false,                  // Can the system fix it alone?
+  "priority_code": 40003,                 // From the numbering schema
+  "affected_paths": ["D:\\Downloads"],     // Where
+  "recommended_action": "classify + split by domain/date"
+}
+</pre>
+</div>
+
+<h3>What Each Severity Means Operationally</h3>
+
+<div class="card">
+<ul>
+<li><span class="label l-gray">LOW</span> <b>Cosmetic.</b> No data loss risk. Auto-fixable in most cases. Empty folders, orphan sidecars, old drafts. The system CAN fix these without asking. Review monthly in batch.</li>
+<li><span class="label l-amber">MEDIUM</span> <b>Functional impact.</b> Potential confusion. Files become hard to find. Extension swamps, duplicates, document chaos. The system PROPOSES fixes but WAITS for approval. Review weekly.</li>
+<li><span class="label l-red">HIGH</span> <b>Structural risk.</b> Potential data loss or broken references. Naming collisions, project scatter, sync conflicts. Requires CAREFUL PLANNING. Address within 48 hours.</li>
+<li><span class="label l-red">CRITICAL</span> <b>Security or integrity risk.</b> Exposed credentials, program roots at risk. The system NEVER auto-fixes these. ALERTS IMMEDIATELY via ntfy. Human acts within minutes.</li>
+</ul>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 4: What Happens to Files — Every Action Explained</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<h3>File Actions</h3>
+
+<div class="action-row">
+<div class="action-icon" style="background:#166534">📝</div>
+<div class="action-body">
+<b>RENAME</b>
+<p>Old name → new name. The old name is logged in the ledger. The .chi sidecar (if any) is updated. All internal links pointing to the old name are flagged for repair. Extensions are NEVER changed during rename. The system suggests 3 candidates ranked by confidence.</p>
+<p><code>IMG_4587.jpg</code> → <code>2026-03-15_church-event-group-photo.jpg</code></p>
+</div>
+</div>
+
+<div class="action-row">
+<div class="action-icon" style="background:#854d0e">📦</div>
+<div class="action-body">
+<b>MOVE</b>
+<p>Source folder → destination folder. The ledger records both paths. If the file had a .chi sidecar, it moves too. If other files referenced this one, they're flagged for link repair. Moves are REVERSIBLE via the ledger — the system can always undo.</p>
+<p><code>D:\Downloads\paper.pdf</code> → <code>O:\_Theophysics_v5\papers\paper.pdf</code></p>
+</div>
+</div>
+
+<div class="action-row">
+<div class="action-icon" style="background:#312e81">🗄️</div>
+<div class="action-body">
+<b>ARCHIVE</b>
+<p>Move to <code>.archive/</code> inside the same parent directory. The file is still on disk, still recoverable, but out of the active workspace. Archives are timestamped: <code>.archive/2026-07-03/file.pdf</code>. This is the default for duplicates, old drafts, and stale pipeline outputs.</p>
+</div>
+</div>
+
+<div class="action-row">
+<div class="action-icon" style="background:#991b1b">🗑️</div>
+<div class="action-body">
+<b>DELETE (soft)</b>
+<p>Move to <code>.trash/</code> with timestamp. NEVER permanent deletion in V1. ALWAYS requires human approval regardless of count. The ledger records the original path so recovery is one command. Trash is reviewed monthly — only then is it truly gone.</p>
+</div>
+</div>
+
+<div class="action-row">
+<div class="action-icon" style="background:#155e75">📋</div>
+<div class="action-body">
+<b>CLASSIFY</b>
+<p>Run the semantic scorer → get chi-variable scores → compute coordinate hash → write to the .chi sidecar file OR store in the hub database (depending on folder policy). Classification does NOT move or rename anything. It's read-only intelligence gathering.</p>
+<p><code>sermon_notes.md</code> → chi signature: <code>GFC-2K5A-4A</code> (Grace=0.9, Faith=0.8, Christological=0.7)</p>
+</div>
+</div>
+
+<div class="action-row">
+<div class="action-icon" style="background:#065f46">🔒</div>
+<div class="action-body">
+<b>PROTECT</b>
+<p>Mark the folder/file as NEVER-TOUCH. Program roots (.git, node_modules, venv), canonical archives, and anything the human explicitly flags. The system will scan and classify but REFUSE to rename, move, archive, or delete anything inside a protected zone.</p>
+</div>
+</div>
+
+<div class="action-row">
+<div class="action-icon" style="background:#1e293b">📎</div>
+<div class="action-body">
+<b>WRITE SIDECAR</b>
+<p>Create a <code>.chi</code> or <code>.meta.json</code> file next to the original. Contains: chi-variable scores, coordinate hash, meta classification (CONTEXT/DOMAIN/FUNCTION/STATE), source AI, confidence, and timestamp. The sidecar is invisible to humans but readable by any AI or script.</p>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 5: The 10,000-File Folder — What Actually Happens</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p style="margin-bottom:16px">You have a folder with 10,000 files. Here is the exact sequence of what happens when the scanner hits it.</p>
+
+<h3>Phase 1: Discovery (30 seconds)</h3>
+
+<div class="card">
+<p><b>Walk the directory.</b> Count: 10,247 files, 3 subdirectories, 847 unique filenames, 23 file extensions.</p>
+<p><b>Q4 fires immediately:</b> <span class="label l-amber">S04 FLAT OVERLOAD</span> — 10,247 files in one directory.</p>
+<p><b>Q1 fires:</b> <span class="label l-amber">S01 EXTENSION SWAMP</span> — 23 different file types mixed together.</p>
+<p>The folder is already diagnosed as <span class="label l-red">GRADE F</span> before the scanner even reads file contents.</p>
+</div>
+
+<h3>Phase 2: Sampling (60 seconds)</h3>
+
+<div class="card">
+<p><b>The scanner does NOT read all 10,000 files.</b> It takes a stratified sample:</p>
+<ul>
+<li>First 50 files alphabetically</li>
+<li>Last 50 files alphabetically</li>
+<li>50 random files from the middle</li>
+<li>ALL files with sizes in the top 5% (the big ones matter)</li>
+<li>ALL files with dangerous extensions (.env, .key, .pem)</li>
+</ul>
+<p>Sample size: ~200 files. Enough to characterize the population without reading 10,000.</p>
+</div>
+
+<h3>Phase 3: Classification (90 seconds on the sample)</h3>
+
+<div class="card">
+<p><b>Each sampled file gets classified through 4 layers:</b></p>
+<p><b>Layer 1 — Physical:</b> extension (.pdf), size (2.4 MB), date (2025-11-03), path depth (0).</p>
+<p><b>Layer 2 — Semantic:</b> Run the 250-word scorer on the first 5KB of text. Produces chi-variable scores. Example: a file about thermodynamics scores E=0.9, S=0.8, K=0.3 → hash <code>ES-4K5A-3A</code>.</p>
+<p><b>Layer 3 — Meta:</b> Auto-derived from Layer 2 scores. <code>BUSINESS.LEARNING.DOCUMENT.ACTIVE</code></p>
+<p><b>Layer 4 — Relational:</b> What project does this belong to? What source AI created it? Who owns it?</p>
+</div>
+
+<h3>Phase 4: Clustering — HOW THE FOLDER GETS NAMED</h3>
+
+<div class="card">
+<b>This is the answer to "how do we name a folder with 10,000 files?"</b>
+<p style="color:var(--ink);margin-top:8px">You don't name the FOLDER. You name the CLUSTERS inside it. The folder becomes multiple folders, each named by what's actually in it.</p>
+</div>
+
+<div class="example">
+<b>The clustering algorithm:</b><br><br>
+1. Group all 10,247 files by their <b>dominant chi-variable</b> (the highest-scoring variable from Layer 2).<br><br>
+2. Within each group, sub-group by <b>file extension</b>.<br><br>
+3. Within each sub-group, sub-group by <b>date range</b> (same month = same bucket).<br><br>
+4. Name each cluster using the pattern: <code>{dominant_variable}_{domain}_{date_range}</code><br><br>
+5. If a cluster has fewer than 5 files, merge it into the nearest neighbor.
+</div>
+
+<h3>Example: 10,000 Files → Named Subfolders</h3>
+
+<pre>
+BEFORE:
+D:\Downloads\
+  ├── paper.pdf
+  ├── IMG_4587.jpg
+  ├── budget_2025.xlsx
+  ├── sermon_notes.md
+  ├── Theophysics_v3.lean
+  ├── invoice_march.pdf
+  ├── ... (10,241 more files)
+  └── screenshot_2026_01_05.png
+
+AFTER (proposed structure — human approves before execution):
+
+D:\Downloads\                              ← original, now contains subfolders
+  ├── research_physics_2025Q4\             ← E-dominant (Epistemic), .pdf/.md, Oct-Dec 2025
+  │   ├── paper.pdf
+  │   ├── thermodynamics_review.pdf
+  │   └── ... (847 files)
+  │
+  ├── research_theology_2026Q1\            ← GFC-dominant (Grace/Faith/Christological), .md/.html
+  │   ├── sermon_notes.md
+  │   └── ... (312 files)
+  │
+  ├── code_theophysics\                    ← S-dominant (Structural), .lean/.py/.js
+  │   ├── Theophysics_v3.lean
+  │   └── ... (1,203 files)
+  │
+  ├── finance_personal_2025\               ← M-dominant (Moral/alignment), .xlsx/.pdf
+  │   ├── budget_2025.xlsx
+  │   ├── invoice_march.pdf
+  │   └── ... (89 files)
+  │
+  ├── media_photos_2025Q4\                 ← Q-dominant (Qualia), .jpg/.png
+  │   ├── IMG_4587.jpg → 2025-11-03_church-event.jpg (renamed)
+  │   └── ... (2,847 files)
+  │
+  ├── media_screenshots_2026Q1\            ← Q-dominant, .png, screenshot pattern
+  │   ├── screenshot_2026_01_05.png
+  │   └── ... (1,420 files)
+  │
+  ├── installers_software\                 ← separate by policy, .exe/.msi
+  │   └── ... (156 files)
+  │
+  ├── _unknown\                            ← files the system couldn't classify
+  │   └── ... (43 files, flagged for manual review)
+  │
+  ├── _duplicates\                         ← hash-matched duplicates, keeper noted
+  │   └── ... (340 clusters, 890 files total)
+  │
+  └── _protected\                          ← program roots, DO NOT TOUCH
+      ├── node_project_1\
+      └── python_venv\
+</pre>
+
+<h3>How Folder Names Are Generated</h3>
+
+<div class="card">
+<b>Naming rules (deterministic, no AI needed):</b>
+<ul>
+<li><b>Prefix:</b> dominant chi-variable mapped to a human word: G=grace, M=ethics, E=research, S=code, T=history, K=community, R=recovery, Q=media, F=faith, C=theology</li>
+<li><b>Middle:</b> meta-domain from Layer 3: physics, theology, personal, finance, software, media</li>
+<li><b>Suffix:</b> date range in the cluster: 2025Q4, 2026Q1, 2026-06, ongoing</li>
+<li><b>Format:</b> <code>{category}_{domain}_{date_range}</code> → all lowercase, underscores, no spaces</li>
+<li><b>Special prefixes:</b> <code>_unknown</code>, <code>_duplicates</code>, <code>_protected</code> (underscore = system-managed)</li>
+</ul>
+<p style="margin-top:10px"><b>If Ollama is available,</b> the system can generate a more natural name by summarizing the cluster's content. But the deterministic name is always the fallback and always works.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 6: What Gets Stored After Every Scan</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="card">
+<b>Per file (in the hub database):</b>
+<ul>
+<li>file_id, current_path, original_path</li>
+<li>sha256 hash + quick_hash (first 8KB)</li>
+<li>chi-variable scores: vec_G through vec_C (10 floats)</li>
+<li>coordinate hash: <code>GKC-3K5A-3F</code></li>
+<li>meta classification: CONTEXT.DOMAIN.FUNCTION.STATE</li>
+<li>symptom IDs affecting this file</li>
+<li>proposed actions (rename/move/archive) — NOT executed yet</li>
+</ul>
+</div>
+
+<div class="card">
+<b>Per folder (in the hub database):</b>
+<ul>
+<li>folder_id, path, role (intake_hub / research / program_root)</li>
+<li>file_count, dir_count, total_size</li>
+<li>health grade (A-F), score (0-100)</li>
+<li>symptom list with counts</li>
+<li>dominant chi-variables for the folder population</li>
+<li>proposed subfolder structure (the clustering result)</li>
+<li>last_scanned timestamp</li>
+<li>trend: score_delta vs previous scan</li>
+</ul>
+</div>
+
+<div class="card">
+<b>In shared memory (accessible to all AIs):</b>
+<ul>
+<li><code>scan_Downloads_20260703</code> → "Grade D (38/100), 14 symptoms, 340 duplicate clusters"</li>
+<li><code>folder_role_Downloads</code> → "intake_hub"</li>
+<li><code>chi_dominant_Downloads</code> → "Q (media), E (research), S (code)"</li>
+</ul>
+</div>
+
+<div class="card">
+<b>In the scan report (HTML file):</b>
+<ul>
+<li>Visual grade circle</li>
+<li>Category breakdown bars</li>
+<li>Prioritized work order table with effort estimates</li>
+<li>Symptom detail cards with affected paths</li>
+<li>Delta comparison vs previous scan</li>
+<li>Proposed folder structure (the clustering diagram)</li>
+</ul>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 7: The Learning Loop</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="card">
+<b>What the system learns from YOUR behavior:</b>
+<ul>
+<li><b>Accept a rename</b> → the naming pattern is reinforced for that folder profile. After 50 accepts, the system predicts your preferences with >70% accuracy.</li>
+<li><b>Reject a rename</b> → the pattern is suppressed. The system asks: was it the prefix? the date format? the domain word? It learns which part was wrong.</li>
+<li><b>Move a file manually</b> → the system records: "David moved .lean files to Z:\__ CODEX CLAUDE Production." Next time a .lean file appears in Downloads, the system suggests that destination.</li>
+<li><b>Ignore a symptom</b> → the system doesn't repeat the alert next scan. But the symptom stays in the report. Ignoring is different from fixing.</li>
+<li><b>Fix a symptom</b> → the score goes up next scan. The system compares before/after and learns which fixes produce the most score improvement.</li>
+</ul>
+<p style="margin-top:10px;color:var(--ink)"><b>Rule:</b> Learning is SCOPED. What David does in Downloads doesn't affect what happens in O:\_Theophysics_v5. Each folder profile has its own preference history. A local correction never becomes a global rule without explicit approval.</p>
+</div>
+
+<div class="divider"></div>
+
+<div class="footer">
+<span>Scanner Pipeline v1.0 — Source: 22003 (FileWatcher)</span>
+<span>20 questions × 40 detectors × 7 actions × 15 folder profiles</span>
+<span>July 3, 2026</span>
+</div>
+
+</body>
+</html>

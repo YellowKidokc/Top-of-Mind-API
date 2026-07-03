@@ -1,0 +1,817 @@
+/**
+ * Gemini File Intelligence System (FIS) GUI - Design tokens & Stylesheet
+ * Labeled and designed by Gemini.
+ * 
+ * Implements a premium cyberpunk/neon-slate interface design with glassmorphism,
+ * responsive grids, rich styling, custom scrollbars, and micro-animations.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Color Palette - Labeled by Gemini */
+  --gemini-bg: #07090e;
+  --gemini-surface-dark: #0b0e15;
+  --gemini-panel: rgba(18, 22, 33, 0.7);
+  --gemini-panel-solid: #121721;
+  --gemini-panel-hover: rgba(26, 32, 48, 0.95);
+  --gemini-line: rgba(56, 67, 92, 0.5);
+  --gemini-line-focus: rgba(95, 179, 174, 0.8);
+  
+  /* Highlights & Statuses */
+  --gemini-gold: #e5ab35;
+  --gemini-gold-glow: rgba(229, 171, 53, 0.15);
+  --gemini-cyan: #4ec2ba;
+  --gemini-cyan-glow: rgba(78, 194, 186, 0.15);
+  --gemini-green: #3cd070;
+  --gemini-green-glow: rgba(60, 208, 112, 0.15);
+  --gemini-red: #ef4f4f;
+  --gemini-red-glow: rgba(239, 79, 79, 0.15);
+  --gemini-purple: #9f7aea;
+  --gemini-purple-glow: rgba(159, 122, 234, 0.15);
+  
+  /* Text */
+  --gemini-text-main: #f0edf4;
+  --gemini-text-muted: #a0aec0;
+  --gemini-text-faint: #64748b;
+  
+  /* Geometry & Shadows */
+  --gemini-radius: 12px;
+  --gemini-radius-sm: 6px;
+  --gemini-radius-lg: 18px;
+  --gemini-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --gemini-shadow-glow: 0 0 15px rgba(78, 194, 186, 0.2);
+  
+  /* Animations */
+  --gemini-transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --gemini-transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--gemini-bg);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(78, 194, 186, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(229, 171, 53, 0.05) 0%, transparent 45%);
+  color: var(--gemini-text-main);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar - Gemini Designed */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--gemini-surface-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gemini-line);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gemini-cyan);
+}
+
+/* Main Layout Framework */
+.gemini-app-container {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* Left Sidebar - Gemini Brand Station */
+.gemini-sidebar {
+  background: var(--gemini-surface-dark);
+  border-right: 1px solid var(--gemini-line);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  padding: 24px 16px;
+}
+
+.gemini-logo-container {
+  margin-bottom: 32px;
+  padding: 0 8px;
+}
+
+.gemini-logo-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--gemini-text-main);
+}
+
+.gemini-logo-title span {
+  color: var(--gemini-gold);
+}
+
+.gemini-logo-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--gemini-cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Navigation Items */
+.gemini-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.gemini-nav-item button {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--gemini-text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: var(--gemini-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: var(--gemini-transition-fast);
+}
+
+.gemini-nav-item button:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--gemini-text-main);
+}
+
+.gemini-nav-item.active button {
+  background: var(--gemini-cyan-glow);
+  color: var(--gemini-cyan);
+  border-color: rgba(78, 194, 186, 0.3);
+  box-shadow: var(--gemini-shadow-glow);
+}
+
+.gemini-nav-badge {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  background: var(--gemini-line);
+  color: var(--gemini-text-main);
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+
+.gemini-nav-item.active .gemini-nav-badge {
+  background: var(--gemini-cyan);
+  color: #07090e;
+}
+
+/* Connection Status Block */
+.gemini-connection-card {
+  background: rgba(18, 22, 33, 0.5);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius);
+  padding: 14px;
+  margin-top: auto;
+}
+
+.gemini-connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+.gemini-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--gemini-green);
+  box-shadow: 0 0 8px var(--gemini-green);
+}
+
+.gemini-status-dot.offline {
+  background: var(--gemini-red);
+  box-shadow: 0 0 8px var(--gemini-red);
+}
+
+.gemini-connection-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: var(--gemini-panel-solid);
+  border: 1px solid var(--gemini-line);
+  color: var(--gemini-text-main);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 6px;
+  border-radius: var(--gemini-radius-sm);
+  cursor: pointer;
+  transition: var(--gemini-transition-fast);
+}
+
+.gemini-connection-btn:hover {
+  border-color: var(--gemini-cyan);
+}
+
+/* Main Content Panel - Gemini Studio Workspace */
+.gemini-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Header bar */
+.gemini-header {
+  border-bottom: 1px solid var(--gemini-line);
+  background: rgba(7, 9, 14, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.gemini-view-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.gemini-view-description {
+  font-size: 13px;
+  color: var(--gemini-text-muted);
+}
+
+.gemini-header-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.gemini-header-stat {
+  font-size: 12px;
+  color: var(--gemini-text-muted);
+}
+
+.gemini-header-stat strong {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  color: var(--gemini-cyan);
+}
+
+/* Work Board / Workspace Wrapper */
+.gemini-workspace-body {
+  padding: 32px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+}
+
+/* Glass Card Panel */
+.gemini-card {
+  background: var(--gemini-panel);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius-lg);
+  padding: 24px;
+  box-shadow: var(--gemini-shadow);
+  backdrop-filter: blur(12px);
+  margin-bottom: 24px;
+  transition: border-color var(--gemini-transition-fast);
+}
+
+.gemini-card:hover {
+  border-color: rgba(95, 179, 174, 0.4);
+}
+
+/* Trust Principle Banner */
+.gemini-banner-cyan {
+  background: var(--gemini-cyan-glow);
+  border-left: 4px solid var(--gemini-cyan);
+  padding: 16px 20px;
+  border-radius: 0 var(--gemini-radius) var(--gemini-radius) 0;
+  margin-bottom: 28px;
+  font-size: 13.5px;
+}
+
+.gemini-banner-cyan strong {
+  color: var(--gemini-cyan);
+}
+
+/* Buttons - Premium Aesthetics */
+.gemini-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--gemini-radius);
+  cursor: pointer;
+  transition: var(--gemini-transition-fast);
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gemini-btn-primary {
+  background: var(--gemini-cyan);
+  color: #07090e;
+}
+
+.gemini-btn-primary:hover {
+  background: #39aaa2;
+  box-shadow: var(--gemini-shadow-glow);
+  transform: translateY(-1px);
+}
+
+.gemini-btn-secondary {
+  background: var(--gemini-panel-solid);
+  border-color: var(--gemini-line);
+  color: var(--gemini-text-main);
+}
+
+.gemini-btn-secondary:hover {
+  border-color: var(--gemini-text-muted);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.gemini-btn-gold {
+  background: var(--gemini-gold);
+  color: #07090e;
+}
+
+.gemini-btn-gold:hover {
+  background: #c69429;
+  transform: translateY(-1px);
+}
+
+.gemini-btn-danger {
+  background: var(--gemini-red);
+  color: #fff;
+}
+
+.gemini-btn-danger:hover {
+  background: #d43b3b;
+  transform: translateY(-1px);
+}
+
+/* Forms & Questions Styles - Onboarding Stage */
+.gemini-question-container {
+  border-bottom: 1px solid var(--gemini-line);
+  padding: 24px 0;
+}
+
+.gemini-question-container:last-child {
+  border-bottom: none;
+}
+
+.gemini-question-text {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.gemini-question-axiom-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--gemini-text-faint);
+  margin-left: 8px;
+}
+
+.gemini-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.gemini-option-card {
+  background: var(--gemini-panel-solid);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--gemini-transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gemini-option-card:hover {
+  border-color: var(--gemini-cyan);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gemini-option-card.selected {
+  border-color: var(--gemini-cyan);
+  background: var(--gemini-cyan-glow);
+}
+
+.gemini-radio-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--gemini-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gemini-option-card.selected .gemini-radio-dot {
+  border-color: var(--gemini-cyan);
+}
+
+.gemini-option-card.selected .gemini-radio-dot::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--gemini-cyan);
+  border-radius: 50%;
+}
+
+.gemini-option-label {
+  font-size: 13.5px;
+}
+
+/* Prediction Board Cards */
+.gemini-pred-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.gemini-pred-card {
+  background: var(--gemini-panel-solid);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius);
+  overflow: hidden;
+  transition: var(--gemini-transition-normal);
+}
+
+.gemini-pred-card:hover {
+  transform: translateX(4px);
+  border-color: var(--gemini-cyan);
+}
+
+.gemini-pred-header {
+  padding: 14px 18px;
+  background: rgba(255,255,255, 0.015);
+  border-bottom: 1px solid var(--gemini-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gemini-pred-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gemini-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+
+.gemini-badge-low {
+  background: rgba(60, 208, 112, 0.12);
+  color: var(--gemini-green);
+  border-color: rgba(60, 208, 112, 0.3);
+}
+
+.gemini-badge-medium {
+  background: rgba(229, 171, 53, 0.12);
+  color: var(--gemini-gold);
+  border-color: rgba(229, 171, 53, 0.3);
+}
+
+.gemini-badge-high {
+  background: rgba(239, 79, 79, 0.12);
+  color: var(--gemini-red);
+  border-color: rgba(239, 79, 79, 0.3);
+}
+
+.gemini-pred-confidence {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--gemini-gold);
+}
+
+.gemini-pred-body {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+.gemini-pred-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gemini-flow-step {
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--gemini-radius-sm);
+  border-left: 3px solid var(--gemini-line);
+}
+
+.gemini-flow-step.recommended {
+  border-left-color: var(--gemini-cyan);
+  background: rgba(78, 194, 186, 0.03);
+}
+
+.gemini-flow-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--gemini-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gemini-flow-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  word-break: break-all;
+}
+
+.gemini-flow-val.target {
+  color: var(--gemini-cyan);
+  font-weight: 500;
+}
+
+.gemini-pred-explanation {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gemini-explanation-text {
+  font-size: 13px;
+  color: var(--gemini-text-muted);
+  line-height: 1.5;
+}
+
+.gemini-pred-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* Rename Studio Layout */
+.gemini-studio-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+
+.gemini-studio-table-container {
+  overflow-x: auto;
+}
+
+.gemini-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.gemini-table th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gemini-line);
+  color: var(--gemini-cyan);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gemini-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56, 67, 92, 0.25);
+  font-size: 13px;
+}
+
+.gemini-original-path {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--gemini-text-muted);
+}
+
+.gemini-rename-suggest {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--gemini-gold);
+  font-weight: 500;
+}
+
+/* Schema Snap Selector */
+.gemini-schema-box {
+  background: var(--gemini-panel-solid);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: var(--gemini-transition-fast);
+}
+
+.gemini-schema-box:hover {
+  border-color: var(--gemini-cyan);
+}
+
+.gemini-schema-box.active {
+  border-color: var(--gemini-gold);
+  box-shadow: 0 0 10px rgba(229, 171, 53, 0.15);
+}
+
+.gemini-schema-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--gemini-text-main);
+  display: flex;
+  justify-content: space-between;
+}
+
+.gemini-schema-example {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: var(--gemini-cyan);
+  margin: 6px 0;
+}
+
+.gemini-schema-desc {
+  font-size: 11px;
+  color: var(--gemini-text-faint);
+  line-height: 1.4;
+}
+
+/* Folder system builder grid */
+.gemini-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.gemini-folder-card {
+  background: var(--gemini-panel-solid);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gemini-folder-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gemini-gold);
+}
+
+.gemini-folder-role {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.gemini-folder-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--gemini-text-muted);
+}
+
+/* Review gate list styles */
+.gemini-review-card {
+  background: var(--gemini-panel-solid);
+  border: 2px solid var(--gemini-red);
+  border-radius: var(--gemini-radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 10px rgba(239, 79, 79, 0.05);
+}
+
+.gemini-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--gemini-line);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.gemini-review-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gemini-red);
+}
+
+.gemini-review-details {
+  background: rgba(0,0,0, 0.25);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 12px;
+  border-radius: var(--gemini-radius-sm);
+  color: var(--gemini-text-muted);
+  margin-bottom: 16px;
+}
+
+/* Custom Modals & Dialogs */
+.gemini-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.gemini-modal-content {
+  background: var(--gemini-panel-solid);
+  border: 1px solid var(--gemini-line);
+  border-radius: var(--gemini-radius-lg);
+  padding: 32px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.gemini-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--gemini-text-muted);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Animations */
+@keyframes geminiPulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.gemini-pulse {
+  animation: geminiPulse 2s infinite ease-in-out;
+}
+
+/* Responsive Scaling */
+@media (max-width: 992px) {
+  .gemini-app-container {
+    grid-template-columns: 1fr;
+  }
+  .gemini-sidebar {
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--gemini-line);
+  }
+  .gemini-studio-layout {
+    grid-template-columns: 1fr;
+  }
+}
