@@ -24,6 +24,17 @@ def _slug(name: str) -> str:
     return slug or "folder"
 
 
+def _normalize_tags(tags: list[str] | None) -> list[str]:
+    normalized: list[str] = []
+    for tag in tags or []:
+        cleaned = tag.strip().lower()
+        if cleaned and cleaned not in normalized:
+            normalized.append(cleaned)
+    if len(normalized) > 3:
+        raise ValueError("folders support up to three tags")
+    return normalized
+
+
 class FolderRepo:
     def __init__(self, conn: sqlite3.Connection) -> None:
         self.conn = conn
@@ -40,16 +51,18 @@ class FolderRepo:
         visibility: str = "shared",
         sort_order: int = 100,
         metadata: JsonDict | None = None,
+        tags: list[str] | None = None,
     ) -> JsonDict:
         code = folder_code or self.next_folder_code()
+        normalized_tags = _normalize_tags(tags)
         cur = self.conn.execute(
             """
             INSERT INTO top_folders (
-                folder_code, name, slug, parent_id, wall, wall_code, owner_id, visibility, sort_order, metadata_json
+                folder_code, name, slug, parent_id, wall, wall_code, owner_id, visibility, sort_order, metadata_json, tags_json
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (code, name, _slug(name), parent_id, wall, wall_code, owner_id, visibility, sort_order, _dump(metadata or {})),
+            (code, name, _slug(name), parent_id, wall, wall_code, owner_id, visibility, sort_order, _dump(metadata or {}), _dump(normalized_tags)),
         )
         self.conn.commit()
         return self.get_folder(int(cur.lastrowid))
@@ -74,6 +87,7 @@ class FolderRepo:
         wall: str | None = None,
         parent_id: int | None = None,
         owner_id: str | None = None,
+        tag: str | None = None,
         include_archived: bool = False,
     ) -> list[JsonDict]:
         clauses: list[str] = []
@@ -87,11 +101,50 @@ class FolderRepo:
         if owner_id:
             clauses.append("owner_id = ?")
             params.append(owner_id)
+        if tag:
+            clauses.append("tags_json LIKE ?")
+            params.append(f'%"{tag.strip().lower()}"%')
         if not include_archived:
             clauses.append("archived = 0")
         where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
         rows = self.conn.execute(f"SELECT * FROM top_folders{where} ORDER BY sort_order ASC, name ASC", params).fetchall()
         return [self._folder(row) for row in rows]
+
+    def search_folders(
+        self,
+        query: str,
+        *,
+        owner_id: str | None = None,
+        wall: str | None = None,
+        include_archived: bool = False,
+    ) -> list[JsonDict]:
+        needle = f"%{query.lower()}%"
+        clauses = ["(lower(name) LIKE ? OR lower(slug) LIKE ? OR lower(metadata_json) LIKE ? OR lower(tags_json) LIKE ?)"]
+        params: list[object] = [needle, needle, needle, needle]
+        if owner_id:
+            clauses.append("owner_id = ?")
+            params.append(owner_id)
+        if wall:
+            clauses.append("wall = ?")
+            params.append(wall)
+        if not include_archived:
+            clauses.append("archived = 0")
+        rows = self.conn.execute(
+            f"SELECT * FROM top_folders WHERE {' AND '.join(clauses)} ORDER BY sort_order ASC, name ASC", params
+        ).fetchall()
+        return [self._folder(row) for row in rows]
+
+    def folder_tree(self, *, owner_id: str | None = None, wall: str | None = None, include_archived: bool = False) -> list[JsonDict]:
+        folders = self.list_folders(owner_id=owner_id, wall=wall, include_archived=include_archived)
+        by_id = {folder["id"]: {**folder, "children": []} for folder in folders}
+        roots: list[JsonDict] = []
+        for folder in by_id.values():
+            parent_id = folder["parent_id"]
+            if parent_id in by_id:
+                by_id[parent_id]["children"].append(folder)
+            else:
+                roots.append(folder)
+        return roots
 
     def archive_folder(self, folder_id: int, *, archived: bool = True) -> JsonDict:
         self.get_folder(folder_id)
@@ -113,6 +166,7 @@ class FolderRepo:
             "visibility": row["visibility"],
             "sort_order": row["sort_order"],
             "metadata": _load(row["metadata_json"]),
+            "tags": _load(row["tags_json"]) if "tags_json" in row.keys() else [],
             "archived": bool(row["archived"]),
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],

@@ -25,6 +25,7 @@ class FolderRequest(BaseModel):
     visibility: str = "shared"
     sort_order: int = 100
     metadata: dict[str, object] = Field(default_factory=dict)
+    tags: list[str] = Field(default_factory=list, max_length=3)
 
 
 class FolderArchiveRequest(BaseModel):
@@ -40,7 +41,7 @@ def _repo() -> FolderRepo:
 def create_folder(request: FolderRequest) -> dict[str, object]:
     try:
         return {"folder": _repo().create_folder(**request.model_dump())}
-    except sqlite3.IntegrityError as exc:
+    except (sqlite3.IntegrityError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -49,6 +50,7 @@ def list_folders(
     wall: str | None = None,
     parent_id: int | None = None,
     owner_id: str | None = None,
+    tag: str | None = None,
     include_archived: bool = False,
 ) -> dict[str, object]:
     return {
@@ -56,9 +58,29 @@ def list_folders(
             wall=wall,
             parent_id=parent_id,
             owner_id=owner_id,
+            tag=tag,
             include_archived=include_archived,
         )
     }
+
+
+@router.get("/search")
+def search_folders(
+    q: str,
+    wall: str | None = None,
+    owner_id: str | None = None,
+    include_archived: bool = False,
+) -> dict[str, object]:
+    return {"folders": _repo().search_folders(q, wall=wall, owner_id=owner_id, include_archived=include_archived)}
+
+
+@router.get("/tree")
+def folder_tree(
+    wall: str | None = None,
+    owner_id: str | None = None,
+    include_archived: bool = False,
+) -> dict[str, object]:
+    return {"folders": _repo().folder_tree(wall=wall, owner_id=owner_id, include_archived=include_archived)}
 
 
 @router.get("/{folder_id}")

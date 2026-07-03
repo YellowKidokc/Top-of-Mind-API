@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from typing import Callable
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 
 BASE_SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -336,6 +336,15 @@ def _migration_10(conn: sqlite3.Connection) -> None:
     conn.execute("INSERT OR IGNORE INTO schema_migrations (version) VALUES (10)")
 
 
+def _migration_11(conn: sqlite3.Connection) -> None:
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(top_folders)").fetchall()}
+    if "tags_json" not in existing:
+        conn.execute("ALTER TABLE top_folders ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_top_folders_name ON top_folders(name)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_top_folders_owner ON top_folders(owner_id)")
+    conn.execute("INSERT OR IGNORE INTO schema_migrations (version) VALUES (11)")
+
+
 MIGRATIONS: dict[int, Migration] = {
     2: _migration_2,
     3: _migration_3,
@@ -346,6 +355,7 @@ MIGRATIONS: dict[int, Migration] = {
     8: _migration_8,
     9: _migration_9,
     10: _migration_10,
+    11: _migration_11,
 }
 
 
