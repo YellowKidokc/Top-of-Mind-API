@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Statistical Profile + Naming Schemas + GUI Map</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c0e13;--panel:#13161d;--p2:#191d27;--p3:#1f2433;--line:#252b3a;--amber:#d9a441;--cyan:#5fb3ae;--ink:#e4e1d8;--dim:#8a91a0;--faint:#525a6b;--green:#4ade80;--red:#ef4444;--purple:#a78bfa;--blue:#60a5fa;--r:10px}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:14.5px;line-height:1.75;padding:32px;max-width:960px;margin:0 auto}
+h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--amber);margin-bottom:6px;letter-spacing:-0.5px}
+.sub{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--faint);margin-bottom:40px}
+h2{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--faint);margin:48px 0 20px;display:flex;align-items:center;gap:10px}
+h2::before{content:'';width:6px;height:6px;background:var(--amber);border-radius:50%}
+h3{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;color:var(--cyan);margin:24px 0 10px}
+p{margin:8px 0;color:var(--dim)}
+p.key{color:var(--ink)}
+b{color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 26px;margin-bottom:16px}
+.card p{font-size:14px}
+code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--p2);padding:2px 7px;border-radius:4px;color:var(--cyan)}
+pre{background:var(--p2);border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--dim);overflow-x:auto;margin:14px 0 18px;line-height:1.65}
+.divider{height:1px;background:linear-gradient(90deg,var(--line) 0%,transparent 100%);margin:44px 0}
+.pill{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 10px;border-radius:20px;margin:2px 4px 2px 0}
+.p-green{background:#16653433;color:#86efac;border:1px solid #16653455}
+.p-amber{background:#854d0e33;color:#fde68a;border:1px solid #854d0e55}
+.p-cyan{background:#155e7533;color:#67e8f9;border:1px solid #155e7566}
+.p-purple{background:#312e8133;color:#c4b5fd;border:1px solid #312e8155}
+.p-red{background:#991b1b33;color:#fca5a5;border:1px solid #991b1b55}
+.insight{background:linear-gradient(135deg,var(--p2),var(--panel));border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:16px 22px;margin:16px 0}
+.insight b{color:var(--amber)}
+.mockup{background:var(--p3);border:2px solid var(--line);border-radius:var(--r);padding:0;margin:16px 0 20px;overflow:hidden}
+.mockup-bar{background:var(--p2);padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.mockup-bar .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mockup-body{padding:18px 22px}
+.schema-row{display:flex;gap:12px;margin:8px 0;align-items:stretch}
+.schema-card{flex:1;background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:16px 18px;transition:border-color 0.2s}
+.schema-card.active{border-color:var(--amber)}
+.schema-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin-bottom:8px}
+.schema-ex{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cyan);margin:4px 0}
+.schema-desc{font-size:12px;color:var(--faint);margin-top:8px}
+.gui-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;margin-bottom:14px;display:flex;gap:16px;align-items:flex-start}
+.gui-num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;color:var(--amber);width:40px;flex-shrink:0;text-align:center}
+.gui-body{flex:1}
+.gui-body b{font-size:15px}
+.gui-body p{font-size:13px}
+.footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);text-align:center}
+</style>
+</head>
+<body>
+
+<h1>Statistical Profile + Naming Schemas + GUI Map</h1>
+<div class="sub">How we derive the user's fingerprint faster than anyone, 3 snap-switch naming conventions, and exactly how many GUIs you need.</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 1: The Statistical Profile</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p class="key">The statistical profile is a fingerprint of how this specific user organizes files. It's derived automatically from observed behavior — no questions asked, no preferences configured. Here's what it contains and how fast each piece can be computed.</p>
+
+<h3>The Profile Object</h3>
+
+<pre>
+UserProfile {
+  // Identity
+  user_id:              string
+  observations_count:   int
+  profile_version:      int
+  first_observed:       datetime
+  last_updated:         datetime
+  trust_level:          0-4
+
+  // SEPARATOR PREFERENCE (derived after ~5 actions)
+  separator:            "_" | "-" | "." | " " | "camelCase"
+  separator_confidence: 0.0 - 1.0
+  // How derived: count separators in the last 20 renamed files.
+  //   underscore_count: 14  → separator = "_", confidence = 0.70
+
+  // CASE PREFERENCE (derived after ~5 actions)  
+  case_style:           "lowercase" | "Title_Case" | "UPPER" | "mixed"
+  case_confidence:      0.0 - 1.0
+  // How derived: check first char and overall case of last 20 renames.
+
+  // DATE PREFERENCE (derived after ~8 actions)
+  uses_dates:           boolean
+  date_position:        "prefix" | "suffix" | "none"
+  date_format:          "YYYY-MM-DD" | "YYYY_MM_DD" | "YYYYMMDD" | "MM-DD-YYYY"
+  date_confidence:      0.0 - 1.0
+  // How derived: regex scan for date patterns in renamed files.
+  //   8 of 12 renames include dates → uses_dates = true
+  //   6 of 8 have date at start → date_position = "prefix"
+  //   5 of 6 use YYYY_MM_DD → date_format = "YYYY_MM_DD"
+
+  // DESTINATION MAP (derived after ~15 actions per type)
+  destination_map: {
+    ".pdf":  { primary: "D:/Finance/", secondary: "D:/Research/", confidence: 0.78 },
+    ".py":   { primary: "D:/GitHub/scripts/", confidence: 0.92 },
+    ".lean": { primary: "Z:/CODEX/", confidence: 0.95 },
+    ".png":  { primary: "D:/Screenshots/", confidence: 0.65 },
+    ".xlsx": { primary: "D:/Finance/", confidence: 0.70 },
+    ".md":   { primary: "O:/_Theophysics/", secondary: "Z:/vault/", confidence: 0.55 },
+  }
+  // How derived: frequency counting with recency decay per extension.
+  // Split destinations (confidence < 0.6) mean the user sends this
+  // type to different places depending on content — needs chi-signal.
+
+  // TEMPORAL PATTERN (derived after ~30 actions)
+  active_hours:         [9, 10, 11, 14, 15, 22, 23, 0, 1]  // hours of activity
+  cleanup_times:        ["monday_morning", "friday_evening"]
+  burst_pattern:        "downloads_first_then_organize"
+  // How derived: bucket actions by hour and day-of-week.
+  //   Cluster detection: if >60% of organize actions happen
+  //   Monday 8-10am → that's a cleanup ritual.
+
+  // FOLDER DEPTH PREFERENCE (derived after ~20 actions)
+  preferred_depth:      2-3      // how deep do they nest?
+  max_depth_tolerance:  5        // beyond this they flatten
+  prefers_flat:         false    // true if they rarely go past depth 1
+  // How derived: measure destination folder depths.
+
+  // NAMING LENGTH (derived after ~10 renames)
+  avg_name_length:      24       // characters (stem only)
+  name_length_range:    [8, 45]  // min-max
+  uses_abbreviations:   true     // "inv" vs "invoice"
+  // How derived: stats on renamed file stems.
+
+  // CO-OCCURRENCE BUNDLES (derived after ~40 actions)
+  bundles: [
+    { extensions: [".py", ".json", ".yml"], label: "code_project" },
+    { extensions: [".pdf", ".xlsx"],        label: "financial_docs" },
+    { extensions: [".md", ".excalidraw"],   label: "research_notes" },
+  ]
+  // How derived: association rule mining on files moved within 60s.
+
+  // VOCABULARY (derived after ~20 renames)
+  common_prefixes:      ["inv", "screenshot", "draft", "meeting"]
+  common_suffixes:      ["final", "v2", "backup", "cleaned"]
+  domain_words:         ["theophysics", "finance", "lean", "sermon"]
+  // How derived: tokenize all renamed file stems, count frequency.
+
+  // PREDICTION ACCURACY HISTORY
+  accuracy_history: [
+    { week: "2026-W27", predictions: 45, correct: 31, rate: 0.689 },
+    { week: "2026-W28", predictions: 52, correct: 41, rate: 0.788 },
+  ]
+  permanent_rules_count: 7
+}
+</pre>
+
+<h3>Derivation Speed — The Edge</h3>
+
+<div class="card">
+<p class="key">Here's where the competitive advantage comes from. The profile doesn't need 500 actions to be useful. Different parts converge at different speeds:</p>
+
+<pre>
+ACTIONS    WHAT YOU KNOW                    ACCURACY IMPACT
+────────   ──────────────────────────────   ─────────────────
+    3       separator preference             +5% (stop guessing _ vs -)
+    5       case preference                  +3% (lowercase vs Title)
+    8       date format preference           +7% (know whether to add dates)
+   10       naming length preference         +3%
+   15       primary destination per type     +20% (biggest single jump)
+   20       folder depth preference          +5%
+   30       temporal pattern                 +5%
+   40       co-occurrence bundles            +5%
+   50       vocabulary / domain words        +3%
+  100       split-destination disambiguation +8% (chi-signal resolves ambiguity)
+  200       preference refinement            +5%
+
+CUMULATIVE:
+  After  5 actions:  ~8%  better than random
+  After 15 actions:  ~28% better than random (destination map kicks in)
+  After 30 actions:  ~41% better than random
+  After 50 actions:  ~49% better than random → roughly 60% absolute accuracy
+  After 100 actions: ~57% better → roughly 70% absolute accuracy
+  After 200 actions: ~62% better → roughly 80% absolute accuracy
+</pre>
+
+<p class="key">The trick is: <b>separator, case, and date preferences converge in the first 5-8 actions.</b> That means the system can already suggest well-formatted names before it even knows WHERE the file should go. The user sees "oh, it got the naming right" immediately, which builds trust for the destination prediction that takes longer to converge.</p>
+</div>
+
+<div class="insight">
+<b>The edge over competitors:</b> Most file organizers wait until they have a complete picture before doing anything. We don't. We start showing value after 3 actions — just the separator preference is enough to format names correctly. Each new piece of the profile adds visible improvement. The user watches the system get smarter in real time. That's the trust ramp.
+</div>
+
+<h3>How To Derive It Faster — The Cheat Codes</h3>
+
+<div class="card">
+<p class="key"><b>Cheat 1: Scan existing files before observing any actions.</b></p>
+<p>The user's file system already contains hundreds of naming decisions. Before the user does anything, scan 200 files in their Documents, Desktop, and Downloads folders. Extract separator, case, date format, and depth preferences from what already exists. This gives you a warm start — the profile is 60% complete before the user takes a single action.</p>
+</div>
+
+<div class="card">
+<p class="key"><b>Cheat 2: Run spell correction in the background.</b></p>
+<p>While the user is working, pre-compute corrected names for every file in the active directory. Use a simple word list (not an LLM). When the user goes to rename, the corrected name is already ready — zero wait. Cache it in SQLite. The user perceives instant response.</p>
+</div>
+
+<div class="card">
+<p class="key"><b>Cheat 3: Pre-compute the destination for every file in Downloads.</b></p>
+<p>Don't wait for the user to pick a file. The moment a file appears in Downloads, run the 5-signal prediction engine on it in the background. Store the result. When the user clicks on it, the prediction is already waiting. Speed is perceived as intelligence.</p>
+</div>
+
+<div class="card">
+<p class="key"><b>Cheat 4: Capitalize on the first correction.</b></p>
+<p>When the user overrides a prediction, don't just learn from that one file. Ask: "Would you like me to apply this to all similar files?" One correction + one "yes" = 50 files organized. That's the highest-leverage moment in the entire system. One action → 50 results.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 2: The Three Naming Schemas</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p class="key">Three naming conventions. The user picks one. Their entire file system reformats. Snap.</p>
+
+<div class="schema-row">
+
+<div class="schema-card active">
+<div class="schema-name" style="color:var(--amber)">Schema A: Clean Professional</div>
+<div class="schema-ex">invoice_march_2026.pdf</div>
+<div class="schema-ex">project_proposal_acme_v2.docx</div>
+<div class="schema-ex">meeting_notes_2026_07_03.md</div>
+<div class="schema-ex">screenshot_pof_hub_architecture.png</div>
+<pre style="margin:10px 0;padding:10px;font-size:11px">
+RULES:
+  separator:     underscore (_)
+  case:          all lowercase
+  date:          suffix, YYYY_MM_DD
+  structure:     {type}_{description}_{date}.{ext}
+  max_length:    60 chars
+  spell_correct: yes
+  strip:         IMG_, DSC_, Screenshot_, (1), (2), _FINAL, _copy
+  abbreviations: no (spell out fully)
+</pre>
+<div class="schema-desc">Best for: professional work, shared drives, team environments. Everything is searchable, sortable by name, and unambiguous.</div>
+</div>
+
+<div class="schema-card">
+<div class="schema-name" style="color:var(--cyan)">Schema B: Date-First Archive</div>
+<div class="schema-ex">2026-07-03_invoice_march.pdf</div>
+<div class="schema-ex">2026-07-01_project_proposal_acme.docx</div>
+<div class="schema-ex">2026-07-03_meeting_notes.md</div>
+<div class="schema-ex">2026-07-03_pof_hub_architecture.png</div>
+<pre style="margin:10px 0;padding:10px;font-size:11px">
+RULES:
+  separator:     hyphen (-)  
+  case:          all lowercase
+  date:          prefix, YYYY-MM-DD
+  structure:     {YYYY-MM-DD}_{description}.{ext}
+  max_length:    60 chars
+  spell_correct: yes
+  strip:         same as Schema A
+  abbreviations: no
+</pre>
+<div class="schema-desc">Best for: chronological work, journals, research logs, anything where "when" matters more than "what." Files sort chronologically in any file explorer automatically.</div>
+</div>
+
+<div class="schema-card">
+<div class="schema-name" style="color:var(--green)">Schema C: Smart Compact</div>
+<div class="schema-ex">inv.march.2026.pdf</div>
+<div class="schema-ex">prop.acme.v2.docx</div>
+<div class="schema-ex">notes.mtg.0703.md</div>
+<div class="schema-ex">ss.pof-hub.png</div>
+<pre style="margin:10px 0;padding:10px;font-size:11px">
+RULES:
+  separator:     period (.)
+  case:          all lowercase
+  date:          suffix, MMDD (short)
+  structure:     {abbrev}.{description}.{date}.{ext}
+  max_length:    35 chars
+  spell_correct: yes (but abbreviate common words)
+  strip:         same as Schema A
+  abbreviations: YES — built-in abbreviation map:
+    invoice→inv  screenshot→ss  meeting→mtg
+    project→proj  proposal→prop  document→doc
+    notes→notes  report→rpt  presentation→pres
+</pre>
+<div class="schema-desc">Best for: power users, deep folder trees, terminal users, anyone who types paths. Short, dense, still readable. Solves the N04 path-length problem by design.</div>
+</div>
+
+</div>
+
+<h3>The Snap-Switch Mechanic</h3>
+
+<div class="mockup">
+<div class="mockup-bar">
+<div class="dot" style="background:#ef4444"></div>
+<div class="dot" style="background:#fbbf24"></div>
+<div class="dot" style="background:#4ade80"></div>
+Naming Schema — Settings
+</div>
+<div class="mockup-body">
+<p style="color:var(--ink);font-size:14px;margin-bottom:12px">Choose your naming convention. All future suggestions and "Always do this" rules will follow this schema. Existing files can be batch-renamed to match.</p>
+
+<div style="display:flex;gap:10px;margin:16px 0">
+<span class="pill p-amber" style="font-size:13px;padding:6px 16px">A: Clean Professional ✓</span>
+<span class="pill p-cyan" style="font-size:13px;padding:6px 16px">B: Date-First Archive</span>
+<span class="pill p-green" style="font-size:13px;padding:6px 16px">C: Smart Compact</span>
+</div>
+
+<p style="font-size:12px;color:var(--faint);margin-top:12px">Switching schemas doesn't rename existing files automatically. It changes all future predictions and suggestions. To apply the new schema to existing files, use "Batch rename to schema" in the review queue.</p>
+</div>
+</div>
+
+<h3>What Happens Behind the Scenes on Schema Switch</h3>
+
+<div class="card">
+<p class="key">When the user snaps from Schema A to Schema B:</p>
+<p>1. All cached name suggestions in SQLite are invalidated and recomputed in the background</p>
+<p>2. The prediction engine's naming pattern signal switches to the new schema's rules</p>
+<p>3. A batch job is queued: "Preview what 500 files would look like in Schema B" — but NOT executed</p>
+<p>4. The preview appears in the review queue: "47 files in Downloads would change. 203 in Documents. Want to see them?"</p>
+<p>5. The user can approve all, approve per-folder, or just let it apply to new files only</p>
+<p style="color:var(--ink);margin-top:10px"><b>The snap is the switch. The application is incremental and reviewable.</b></p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 3: The Name Normalization Pipeline</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p class="key">What runs in the background on every file, caching standardized names before the user ever asks.</p>
+
+<pre>
+RAW FILENAME
+    │
+    ▼
+┌────────────────────────┐
+│ 1. STRIP JUNK          │  Remove: IMG_, DSC_, Screenshot_, (1), (2),
+│                        │  _copy, _FINAL, _v1, _v2, _backup, -Copy
+│                        │  "IMG_4587.jpg" → "4587.jpg"
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 2. SEPARATOR NORMALIZE │  Replace all separators with the schema's separator.
+│                        │  Collapse multiples. Trim edges.
+│                        │  "my--file   name_here" → "my_file_name_here"
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 3. CASE NORMALIZE      │  Apply the schema's case rule.
+│                        │  "My_File_NAME" → "my_file_name"
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 4. SPELL CORRECT       │  Simple word list (no LLM). Check each token
+│                        │  against a 50K-word dictionary.
+│                        │  "theophyscs" → "theophysics"
+│                        │  "invioce" → "invoice"
+│                        │  Only correct if confidence > 0.9 (Levenshtein 1)
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 5. ABBREVIATE          │  Only if schema = Smart Compact.
+│    (optional)          │  "invoice" → "inv", "screenshot" → "ss"
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 6. DATE INSERT         │  If schema uses dates and file has a detectable
+│                        │  date (from filename, EXIF, or mtime):
+│                        │  Insert at the schema's date position (prefix/suffix)
+│                        │  in the schema's date format.
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 7. LENGTH CAP          │  If stem > max_length, truncate intelligently:
+│                        │  keep first word + last word + date.
+│                        │  "very_long_meeting_notes_about_..." → "very_long...notes_2026_07_03"
+└──────────┬─────────────┘
+           ▼
+┌────────────────────────┐
+│ 8. COLLISION CHECK     │  Does this name already exist in the target folder?
+│                        │  If yes, append _01, _02, etc.
+└──────────┬─────────────┘
+           ▼
+STANDARDIZED FILENAME (cached in SQLite, ready instantly)
+</pre>
+
+<p class="key">This pipeline runs in the background every time a new file appears. By the time the user clicks on it, the standardized name is already computed and waiting. The user sees instant response. The compute happened seconds ago.</p>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 4: How Many GUIs Do You Need?</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<p class="key">The answer is <b>4 GUIs</b>. Not 4 apps — 4 interfaces that serve different moments in the user's workflow. Some are overlays, some are full windows, one is a tray icon.</p>
+
+<div class="gui-card">
+<div class="gui-num">1</div>
+<div class="gui-body">
+<b>THE TRAY ICON + NOTIFICATION PANEL</b>
+<span class="pill p-green">Always running</span>
+<span class="pill p-amber">AHK or Electron</span>
+<p>This is the system's heartbeat. A small icon in the system tray that shows status (learning / predicting / auto-pilot). Click it to see: observation count, trust level, prediction accuracy, and today's activity log ("Organized 7 files this morning").</p>
+<p><b>This is NOT the AHK chat overlay.</b> That's a separate thing for the AI relay. This is purely for the file intelligence system. Minimal UI. Just a number and a status.</p>
+<p style="color:var(--ink);margin-top:8px"><b>When it appears:</b> Always. Boots with Windows. Invisible until clicked.</p>
+</div>
+</div>
+
+<div class="gui-card">
+<div class="gui-num">2</div>
+<div class="gui-body">
+<b>THE PREDICTION OVERLAY</b>
+<span class="pill p-amber">Triggered on file action</span>
+<span class="pill p-cyan">AHK floating window</span>
+<p>This is the split-screen prediction card. It appears when the user right-clicks a file, drags it, or starts a rename. Shows: "What you're about to do" vs "What I'd recommend" with the 4 buttons (yours, mine, customize, always).</p>
+<p>Small, dark, floating, positioned near the mouse cursor. Disappears after the user makes a choice. No full window. No settings. Just the prediction and the decision.</p>
+<p><b>Size:</b> ~500px wide × ~200px tall. Anchored to cursor position.</p>
+<p style="color:var(--ink);margin-top:8px"><b>When it appears:</b> On file action. Trust level 1+ only (doesn't appear during Silent Observer phase).</p>
+</div>
+</div>
+
+<div class="gui-card">
+<div class="gui-num">3</div>
+<div class="gui-body">
+<b>THE REVIEW DASHBOARD</b>
+<span class="pill p-purple">On demand</span>
+<span class="pill p-cyan">React web app (localhost)</span>
+<p>This is the TypingMind-inspired interface Codex is building. The full command center. Left sidebar with folder tree and source icons. Main area with the review queue: pending renames, pending moves, pending archives, duplicate resolutions. Batch approve/reject. Scan results with health grades. Prediction accuracy graphs over time. Schema switcher.</p>
+<p>This is where the user does bulk work: "Show me everything the system wants to do to my Downloads folder" → review → approve 40 renames in one click.</p>
+<p><b>Size:</b> Full browser window. Dark theme. Runs at localhost:10000 or wherever the hub API lives.</p>
+<p style="color:var(--ink);margin-top:8px"><b>When it appears:</b> When the user opens it. Not always running. This is the "sit down and review" interface.</p>
+</div>
+</div>
+
+<div class="gui-card">
+<div class="gui-num">4</div>
+<div class="gui-body">
+<b>THE HEALTH REPORT</b>
+<span class="pill p-green">Generated file</span>
+<span class="pill p-amber">HTML, opens in browser</span>
+<p>This is the <code>scan_report.py</code> output we already built. A standalone HTML file generated after each scan. Grade circle, symptom breakdown, work order, delta comparison. The user opens it in their browser, reads it, and decides what to act on.</p>
+<p>This is NOT a live app. It's a document. Generated, saved, shareable. The user can email it to someone: "Here's the health of our shared drive."</p>
+<p style="color:var(--ink);margin-top:8px"><b>When it appears:</b> After a scan. Saved as a file. Opened by the user.</p>
+</div>
+</div>
+
+<h3>What You DON'T Need</h3>
+
+<div class="card">
+<p class="key">Things that seem like they'd need a GUI but don't:</p>
+<p>• <b>Settings page</b> — no. The system learns preferences from behavior. The only "setting" is the naming schema selector, which is 3 buttons on the review dashboard.</p>
+<p>• <b>Rule editor</b> — no. Rules are created by clicking "Always do this" on prediction cards, not by editing a config file. The review dashboard shows existing rules and lets you delete them.</p>
+<p>• <b>File browser</b> — no. The user already has Windows Explorer, Total Commander, whatever they use. We augment it with the prediction overlay, we don't replace it.</p>
+<p>• <b>Folder structure editor</b> — no. The scanner proposes structures. The user approves in the review queue. No drag-and-drop folder designer needed.</p>
+<p>• <b>AI chat for files</b> — no. That's the AHK overlay and the Top of Mind relay. Separate product. Don't mix them.</p>
+</div>
+
+<h3>The Mapping</h3>
+
+<pre>
+GUI                     WHAT IT IS              WHEN               ALREADY BUILT?
+─────────────────────   ─────────────────────   ─────────────────  ──────────────
+1. Tray Icon            System heartbeat        Always             No
+2. Prediction Overlay   Split-screen card       On file action     Partially (AHK)
+3. Review Dashboard     Full command center     On demand          Codex building
+4. Health Report        Scan results document   After scan         YES (scan_report.py)
+</pre>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Part 5: The Whole Stack in One View</h2>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<pre>
+┌──────────────────────────────────────────────────────────────┐
+│                      USER SEES                               │
+│                                                              │
+│  [1] Tray Icon    [2] Prediction     [3] Review     [4] Report│
+│      (always)         Overlay         Dashboard      (HTML)  │
+│                       (on action)     (on demand)            │
+└──────────────────────────┬───────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    INTELLIGENCE LAYER                         │
+│                                                              │
+│  Prediction Engine ──→ 5 signals ──→ weighted vote           │
+│  Statistical Profile ──→ derived from behavior               │
+│  Naming Pipeline ──→ 8-step normalization (cached)           │
+│  3 Naming Schemas ──→ snap-switch                            │
+│  Semantic Scorer ──→ 10D chi-space classification            │
+└──────────────────────────┬───────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│                     ACTION LAYER                             │
+│                                                              │
+│  Job Manager ──→ durable jobs with state machine             │
+│  Review Gate ──→ 16 safety gates                             │
+│  Scanner ──→ 40 symptom detectors                            │
+│  Workers ──→ rename, classify, dedup, archive, extract       │
+└──────────────────────────┬───────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│                     STORAGE LAYER                            │
+│                                                              │
+│  SQLite ──→ observations, predictions, profiles, rules       │
+│  File Drop API ──→ create/read/move/delete                   │
+│  Shared Memory ──→ cross-AI facts                            │
+│  Shared Clipboard ──→ cross-AI scratchpad                    │
+│  ntfy ──→ push notifications                                 │
+└──────────────────────────────────────────────────────────────┘
+</pre>
+
+<div class="divider"></div>
+
+<div class="footer">
+Statistical Profile + Naming Schemas + GUI Map — v1.0<br>
+"Start showing value after 3 actions. Earn automation by action 200."<br>
+POF Hub — July 3, 2026
+</div>
+
+</body>
+</html>

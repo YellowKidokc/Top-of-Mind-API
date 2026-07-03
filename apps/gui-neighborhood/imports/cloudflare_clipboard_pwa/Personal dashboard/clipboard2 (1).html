@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POF 2828 — Clipboard v2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #08080c; --pane: #0e0e14; --card: #13131b; --card-hover: #171721;
+    --card-sel: #161625; --border: #1c1c28; --border-sel: #2d2d48;
+    --text: #b8bcc6; --text2: #6a6a80; --bright: #dde0e8;
+    --gold: #e8a912; --gold-dim: rgba(232,169,18,.12);
+    --green: #2ecc8e; --green-dim: rgba(46,204,142,.10);
+    --red: #d44; --cyan: #4ac4d4; --cyan-dim: rgba(74,196,212,.08);
+    --purple: #8070c8; --purple-dim: rgba(128,112,200,.08);
+    --orange: #f97316; --font: 'DM Mono','Menlo',monospace; --radius: 5px;
+  }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #222230; border-radius: 3px; }
+  body { font-family: var(--font); font-size: 12px; line-height: 1.5; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+</style>
+</head>
+<body>
+<style>
+  /* ── TOPBAR ── */
+  .topbar { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--pane); border-bottom:1px solid var(--border); flex-shrink:0; }
+  .brand { display:flex; align-items:baseline; gap:6px; flex-shrink:0; }
+  .brand b { color:var(--gold); letter-spacing:2px; font-size:11px; }
+  .brand span { color:var(--text2); letter-spacing:1px; font-size:10px; }
+  .search-wrap { flex:1; position:relative; min-width:160px; }
+  .search-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:6px 10px 6px 26px; color:var(--text); font:inherit; outline:none; font-size:11px; }
+  .search-input:focus { border-color:var(--gold); }
+  .search-input::placeholder { color:#2e2e3e; }
+  .search-icon { position:absolute; left:8px; top:50%; transform:translateY(-50%); color:#2e2e3e; pointer-events:none; font-size:12px; }
+  .top-actions { display:flex; gap:4px; margin-left:auto; }
+  .tbtn { background:transparent; border:1px solid var(--border); color:var(--text2); padding:4px 10px; border-radius:var(--radius); font:inherit; cursor:pointer; font-size:10px; letter-spacing:.5px; }
+  .tbtn:hover { border-color:var(--gold); color:var(--gold); }
+  .tbtn.primary { background:var(--gold); color:#000; border-color:var(--gold); font-weight:500; }
+  .tbtn.primary:hover { filter:brightness(1.1); }
+  .tbtn.hide-tight { display:inline-flex; }
+
+  /* ── SLOT RAIL (1-20) ── */
+  .mode-bar { display:flex; align-items:center; gap:2px; padding:5px 12px 0; background:var(--pane); border-bottom:1px solid var(--border); flex-shrink:0; }
+  .mtab { padding:5px 10px 7px; background:none; border:none; border-bottom:2px solid transparent; color:var(--text2); font:inherit; cursor:pointer; font-size:10px; letter-spacing:.8px; text-transform:uppercase; }
+  .mtab:hover { color:var(--text); }
+  .mtab.active { color:var(--cyan); border-bottom-color:var(--cyan); }
+  .slot-rail { display:flex; gap:3px; padding:6px 12px; background:var(--pane); border-bottom:1px solid var(--border); overflow-x:auto; flex-shrink:0; }
+  .slot { display:flex; align-items:center; gap:4px; padding:3px 7px; background:var(--bg); border:1px solid var(--border); border-radius:3px; cursor:pointer; flex-shrink:0; min-width:40px; max-width:110px; font-size:10px; color:var(--text2); transition:all .1s; }
+  .slot:hover { border-color:var(--gold); color:var(--text); }
+  .slot:active { transform:scale(.96); }
+  .slot-num { color:var(--gold); font-weight:500; min-width:12px; font-size:9px; }
+  .slot-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.6; }
+  .slot.empty { opacity:.2; }
+  .slot.filled { border-color:#24243a; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar { display:flex; align-items:center; gap:2px; padding:4px 12px; background:var(--pane); border-bottom:1px solid var(--border); flex-shrink:0; }
+  .ftab { padding:4px 10px; background:none; border:none; border-bottom:2px solid transparent; color:var(--text2); font:inherit; cursor:pointer; font-size:10px; }
+  .ftab:hover { color:var(--text); }
+  .ftab.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .fcount { margin-left:auto; color:var(--text2); font-size:10px; }
+</style>
+<style>
+  /* ── TWO-PANE BODY ── */
+  .body-wrap { flex:1; display:flex; overflow:hidden; }
+  .list-pane { width:380px; min-width:280px; max-width:50%; border-right:1px solid var(--border); overflow-y:auto; padding:6px 8px; display:flex; flex-direction:column; gap:4px; background:var(--bg); }
+  .card { padding:10px 12px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:all .1s; }
+  .card:hover { background:var(--card-hover); border-color:var(--border-sel); }
+  .card.selected { background:var(--card-sel); border-color:var(--border-sel); box-shadow:inset 3px 0 0 var(--gold); }
+  .card-title { font-weight:500; color:var(--bright); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; margin-bottom:2px; }
+  .card-preview { color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; margin-bottom:6px; }
+  .card-bottom { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .tag { padding:1px 6px; background:var(--cyan-dim); color:var(--cyan); border:1px solid rgba(74,196,212,.15); border-radius:2px; font-size:9px; letter-spacing:.5px; text-transform:uppercase; }
+  .pin-badge { padding:1px 6px; background:var(--gold-dim); color:var(--gold); border-radius:2px; font-size:9px; }
+  .slot-badge { padding:1px 6px; background:var(--purple-dim); color:var(--purple); border-radius:2px; font-size:9px; }
+  .card-time { margin-left:auto; color:#2e2e3e; font-size:9px; }
+  .card-acts { display:flex; gap:3px; margin-top:6px; }
+  .cbtn { padding:3px 10px; background:transparent; border:1px solid var(--border); border-radius:3px; color:var(--text2); font:inherit; cursor:pointer; font-size:10px; }
+  .cbtn:hover { border-color:#3a3a50; color:var(--text); }
+  .cbtn:active { transform:scale(.96); }
+  .cbtn.copy { background:var(--green-dim); border-color:rgba(46,204,142,.25); color:var(--green); font-weight:500; flex:1; }
+  .cbtn.copy:hover { background:rgba(46,204,142,.18); }
+  .list-empty { text-align:center; padding:30px 12px; color:#2e2e3e; font-size:11px; }
+
+  /* ── DETAIL PANE ── */
+  .detail-pane { flex:1; overflow-y:auto; display:flex; flex-direction:column; background:var(--pane); }
+  .detail-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#222230; text-align:center; padding:30px; gap:6px; font-size:11px; }
+  .detail-header { padding:16px 20px 12px; border-bottom:1px solid var(--border); }
+  .detail-title { font-weight:500; color:var(--bright); margin-bottom:6px; word-break:break-word; font-size:12px; }
+  .detail-meta { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+  .detail-actions { display:flex; gap:4px; padding:10px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .dbtn { padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:var(--radius); color:var(--text2); font:inherit; cursor:pointer; font-size:10px; }
+  .dbtn:hover { border-color:#3a3a50; color:var(--text); }
+  .dbtn:active { transform:scale(.97); }
+  .dbtn.copy-main { background:var(--green); border-color:var(--green); color:#000; font-weight:500; }
+  .dbtn.copy-main:hover { filter:brightness(1.1); }
+  .dbtn.danger { color:var(--red); border-color:rgba(221,68,68,.25); }
+  .dbtn.danger:hover { background:rgba(221,68,68,.08); }
+  .detail-content { flex:1; padding:16px 20px; white-space:pre-wrap; word-break:break-word; color:var(--text); background:var(--bg); margin:12px 20px; border:1px solid var(--border); border-radius:var(--radius); overflow-y:auto; min-height:80px; font-size:11px; }
+  /* Editable mode */
+  .detail-content.editing { border-color:var(--gold); outline:none; }
+</style>
+<style>
+  /* ── BOTTOM NAV BAR ── */
+  .nav-bar { display:flex; align-items:center; padding:4px 12px; background:var(--pane); border-top:1px solid var(--border); flex-shrink:0; gap:4px; }
+  .nav-btn { width:32px; height:28px; background:transparent; border:1px solid var(--border); border-radius:3px; color:var(--text2); font:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .nav-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .nav-btn:active { transform:scale(.92); }
+  .nav-btn.big { width:40px; }
+  .nav-section { flex:1; text-align:center; color:var(--text2); font-size:10px; letter-spacing:1px; }
+  .nav-section b { color:var(--gold); }
+  .nav-info { font-size:9px; color:#333; margin-left:auto; }
+
+  /* ── MODAL ── */
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:100; align-items:center; justify-content:center; padding:12px; }
+  .modal-bg.open { display:flex; }
+  .modal { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; }
+  .modal h2 { font-weight:500; color:var(--gold); letter-spacing:2px; margin-bottom:12px; font-size:12px; }
+  .modal label { display:block; color:var(--text2); letter-spacing:1px; text-transform:uppercase; margin:10px 0 3px; font-size:9px; }
+  .modal input,.modal textarea { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:7px 10px; color:var(--text); font:inherit; outline:none; font-size:11px; }
+  .modal textarea { min-height:120px; resize:vertical; }
+  .modal input:focus,.modal textarea:focus { border-color:var(--gold); }
+  .modal-row { display:flex; gap:6px; margin-top:14px; justify-content:flex-end; }
+  .mbtn { padding:7px 18px; border-radius:var(--radius); font:inherit; font-weight:500; cursor:pointer; border:1px solid var(--border); font-size:10px; }
+  .mbtn.save { background:var(--green); color:#000; border-color:var(--green); }
+  .mbtn.save:hover { filter:brightness(1.1); }
+  .mbtn.cancel { background:transparent; color:var(--text2); }
+  .mbtn.cancel:hover { border-color:#3a3a50; }
+
+  /* ── TOAST ── */
+  .toast { position:fixed; bottom:14px; left:50%; transform:translateX(-50%) translateY(50px); background:var(--gold); color:#000; padding:5px 18px; border-radius:4px; font-weight:500; letter-spacing:1.5px; z-index:200; transition:transform .18s ease; pointer-events:none; font-size:10px; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:720px) {
+    .list-pane { width:100%; max-width:100%; border-right:none; }
+    .detail-pane { display:none; }
+    .body-wrap.detail-open .list-pane { display:none; }
+    .body-wrap.detail-open .detail-pane { display:flex; }
+  }
+  @media (max-width:900px) {
+    .brand span { display:none; }
+    .tbtn.hide-tight { display:none; }
+  }
+  @media (max-width:760px) {
+    .brand { display:none; }
+  }
+</style>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand"><b>POF 2828</b><span>Clipboard</span></div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" id="searchInput" placeholder="Search clips..." autocomplete="off">
+  </div>
+  <div class="top-actions">
+    <button class="tbtn" id="btnPin" onclick="togglePin()" title="Stay on Top (Alt+T)">📌 Pin</button>
+    <button class="tbtn" id="btnSavePos" onclick="saveWindowPos()" title="Save window position">💾 Pos</button>
+    <button class="tbtn hide-tight" onclick="exportData()">Export</button>
+    <button class="tbtn hide-tight" onclick="document.getElementById('fileInput').click()">Import</button>
+    <button class="tbtn primary" onclick="openAdd()">+ New</button>
+  </div>
+</div>
+
+<!-- SLOT RAIL -->
+<div class="mode-bar">
+  <button class="mtab active" data-mode="hotkeys" onclick="setMode('hotkeys')">Hotkeys</button>
+  <button class="mtab" data-mode="history" onclick="setMode('history')">History</button>
+  <button class="mtab" data-mode="organize" onclick="setMode('organize')">Organize</button>
+</div>
+<div class="slot-rail" id="slotRail"></div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <button class="ftab active" data-f="all" onclick="setFilter('all')">All</button>
+  <button class="ftab" data-f="pinned" onclick="setFilter('pinned')">Pinned</button>
+  <button class="ftab" data-f="tagged" onclick="setFilter('tagged')">Tagged</button>
+  <button class="ftab" data-f="slotted" onclick="setFilter('slotted')">Slotted</button>
+  <span class="fcount" id="filterCount"></span>
+</div>
+
+<!-- TWO-PANE BODY -->
+<div class="body-wrap" id="bodyWrap">
+  <div class="list-pane" id="listPane"></div>
+  <div class="detail-pane" id="detailPane">
+    <div class="detail-empty">Select a clip<br><span style="color:#1a1a28;font-size:10px">↑↓ navigate · Enter copy · ←→ history pages</span></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV BAR -->
+<div class="nav-bar">
+  <button class="nav-btn" onclick="navPage(-1)" title="Previous page">◀</button>
+  <button class="nav-btn" onclick="moveSelUp()" title="Move clip up">▲</button>
+  <button class="nav-btn" onclick="moveSelDown()" title="Move clip down">▼</button>
+  <button class="nav-btn" onclick="stickyTop()" title="Stick to top">⤒</button>
+  <button class="nav-btn" onclick="stickyBottom()" title="Stick to bottom">⤓</button>
+  <div class="nav-section" id="navSection"><b>1</b>/1</div>
+  <button class="nav-btn" onclick="navPage(1)" title="Next page">▶</button>
+  <span class="nav-info" id="navInfo"></span>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2 id="modalTitle">NEW CLIP</h2>
+    <input type="hidden" id="editId">
+    <label>Content</label>
+    <textarea id="fContent" placeholder="Paste or type content..."></textarea>
+    <label>Tags (comma separated)</label>
+    <input id="fTags" placeholder="e.g. code, framework, url">
+    <label>Hotkey Slot (1–20, blank = none)</label>
+    <input id="fSlot" type="number" min="1" max="20" placeholder="e.g. 5">
+    <div class="modal-row">
+      <button class="mbtn cancel" onclick="closeModal()">Cancel</button>
+      <button class="mbtn save" onclick="saveClip()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)">
+<script>
+const API='http://localhost:3456/api';
+const PAGE_SIZE=20;
+let clips=[],filter='all',search='',selIdx=-1,page=0;
+let polling=null;
+let isPinned=false;
+let layoutMode='hotkeys';
+let lastRenderSignature='';
+
+// ── STAY ON TOP (via bridge server) ──
+async function togglePin(){
+  isPinned=!isPinned;
+  const btn=document.getElementById('btnPin');
+  btn.classList.toggle('primary',isPinned);
+  btn.textContent=isPinned?'📌 Pinned':'📌 Pin';
+  try{
+    await fetch(`${API.replace('/api','')}/window/pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:isPinned,title:'POF 2828 — Clipboard v2'})});
+    toast(isPinned?'Window pinned':'Window unpinned');
+  }catch{toast('Pin unavailable')}
+}
+
+// ── SAVE WINDOW POSITION ──
+function saveWindowPos(){
+  const pos={x:window.screenX,y:window.screenY,w:window.outerWidth,h:window.outerHeight};
+  localStorage.setItem('pof2828_clipboard2_pos',JSON.stringify(pos));
+  const btn=document.getElementById('btnSavePos');
+  btn.textContent='💾 Saved!';
+  fetch(`${API.replace('/api','')}/window/position`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...pos,title:'POF 2828 — Clipboard v2'})}).catch(()=>{});
+  setTimeout(()=>btn.textContent='💾 Pos',1500);
+}
+function restoreWindowPos(){
+  try{
+    const pos=JSON.parse(localStorage.getItem('pof2828_clipboard2_pos'));
+    if(pos)window.moveTo(pos.x,pos.y),window.resizeTo(pos.w,pos.h);
+  }catch{}
+}
+
+// ── LOAD FROM SERVER ──
+async function load(){
+  try{
+    const res=await fetch(`${API}/clips?limit=2000`);
+    if(res.ok){clips=await res.json();document.querySelector('.brand span').textContent='Clipboard — LIVE'}
+    else throw new Error();
+  }catch{
+    // Fallback to localStorage cache
+    try{clips=JSON.parse(localStorage.getItem('pof2828_clips_v2'))||[]}catch{clips=[]}
+    document.querySelector('.brand span').textContent='Clipboard — OFFLINE';
+  }
+  // Ensure all clips have needed fields
+  clips.forEach(c=>{
+    if(!c.tags)c.tags=[];
+    if(c.pinned===undefined)c.pinned=false;
+    if(c.slot===undefined)c.slot=null;
+    if(!c.ts&&c.created_at)c.ts=c.created_at;
+    if(!c.created_at&&c.ts)c.created_at=c.ts;
+  });
+  // Cache locally as fallback
+  localStorage.setItem('pof2828_clips_v2',JSON.stringify(clips));
+}
+
+function currentSignature(){
+  const head=clips[0]||{};
+  return JSON.stringify({
+    len: clips.length,
+    id: head.id||'',
+    content: (head.content||'').slice(0,160),
+    ts: head.created_at||head.ts||''
+  });
+}
+
+// ── SAVE TO SERVER ──
+async function saveClipToServer(clip){
+  try{
+    if(clip.id&&clip.id.startsWith('c')){
+      await fetch(`${API}/clips/${clip.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(clip)});
+    }
+  }catch{}
+  localStorage.setItem('pof2828_clips_v2',JSON.stringify(clips));
+}
+async function createClipOnServer(data){
+  try{
+    const res=await fetch(`${API}/clips`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    if(res.ok){const created=await res.json();if(created&&created.id)return created}
+  }catch{}
+  // Fallback: create locally
+  data.id=data.id||gid();data.created_at=data.created_at||new Date().toISOString();
+  return data;
+}
+async function deleteClipOnServer(id){
+  try{await fetch(`${API}/clips/${id}`,{method:'DELETE'})}catch{}
+  localStorage.setItem('pof2828_clips_v2',JSON.stringify(clips));
+}
+async function reorderOnServer(){
+  const ids=clips.map(c=>c.id).filter(Boolean);
+  try{await fetch(`${API}/clips/reorder`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})})}catch{}
+  localStorage.setItem('pof2828_clips_v2',JSON.stringify(clips));
+}
+
+function gid(){return 'c'+Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+
+async function renderAll(){renderSlots();renderList();renderDetail();renderCount();renderNav()}
+function setMode(mode){
+  layoutMode=mode;
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.dataset.mode===mode));
+  document.getElementById('slotRail').style.display = mode==='history' ? 'none' : 'flex';
+  document.querySelector('.filter-bar').style.display = mode==='hotkeys' ? 'none' : 'flex';
+  if(mode==='hotkeys'){
+    filter='slotted';
+    const firstSlotted=clips.findIndex(c=>c.slot);
+    selIdx=firstSlotted>=0 ? firstSlotted : -1;
+  } else if(mode==='history'){
+    filter='all';
+    selIdx=-1;
+  } else {
+    filter='tagged';
+  }
+  page=0;
+  renderAll();
+}
+
+// ── SLOTS ──
+function renderSlots(){
+  if(layoutMode==='history'){
+    document.getElementById('slotRail').innerHTML='';
+    return;
+  }
+  let h='';
+  for(let i=1;i<=20;i++){
+    const c=clips.find(x=>x.slot===i);
+    const t=c?esc((c.content||'').replace(/\n/g,' ').substring(0,18)):'—';
+    h+=`<div class="slot ${c?'filled':'empty'}" onclick="copySlot(${i})" title="${c?esc(c.content?.substring(0,200)):'Empty slot '+i}"><span class="slot-num">${i}</span><span class="slot-text">${t}</span></div>`;
+  }
+  document.getElementById('slotRail').innerHTML=h;
+}
+function getFiltered(){
+  let f=clips;
+  if(filter==='pinned')f=f.filter(c=>c.pinned);
+  else if(filter==='tagged')f=f.filter(c=>c.tags?.length);
+  else if(filter==='slotted')f=f.filter(c=>c.slot);
+  if(search){const q=search.toLowerCase();f=f.filter(c=>(c.content||'').toLowerCase().includes(q)||(c.tags||[]).some(t=>t.toLowerCase().includes(q)))}
+  return f;
+}
+function getPagedFiltered(){const f=getFiltered();const start=page*PAGE_SIZE;return f.slice(start,start+PAGE_SIZE)}
+function totalPages(){return Math.max(1,Math.ceil(getFiltered().length/PAGE_SIZE))}
+</script>
+<script>
+// ── RENDER LIST ──
+function renderList(){
+  const pane=document.getElementById('listPane'),items=getPagedFiltered();
+  if(!items.length){pane.innerHTML=`<div class="list-empty">${search?'No matches':'No clips yet'}</div>`;return}
+  pane.innerHTML=items.map(c=>{
+    const idx=clips.indexOf(c);
+    const title=(c.content||'').split('\n')[0].substring(0,70)||'Untitled';
+    const preview=(c.content||'').split('\n').slice(1).join(' ').substring(0,80);
+    const sel=idx===selIdx?' selected':'';
+    const clickAction=layoutMode==='history'?`copyIdx(${idx})`:`selectClip(${idx})`;
+    return `<div class="card${sel}" onclick="${clickAction}" ondblclick="copyIdx(${idx})" data-idx="${idx}">
+      <div class="card-title">${esc(title)}</div>
+      ${preview?`<div class="card-preview">${esc(preview)}</div>`:''}
+      <div class="card-bottom">
+        ${c.pinned?'<span class="pin-badge">PIN</span>':''}
+        ${c.slot?`<span class="slot-badge">#${c.slot}</span>`:''}
+        ${(c.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
+        <span class="card-time">${timeAgo(c.ts)}</span>
+      </div>
+      <div class="card-acts">
+        <button class="cbtn copy" onclick="event.stopPropagation();copyIdx(${idx})">Copy</button>
+        <button class="cbtn" onclick="event.stopPropagation();openEdit(${idx})">Edit</button>
+        <button class="cbtn" onclick="event.stopPropagation();togglePin(${idx})">${c.pinned?'Unpin':'Pin'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER DETAIL ──
+function renderDetail(){
+  const pane=document.getElementById('detailPane');
+  if(layoutMode==='history'){
+    pane.innerHTML=`<div class="detail-empty">History mode<br><span style="color:#1a1a28;font-size:10px">single click copies · switch to Organize for tags, pins, and slots</span></div>`;return}
+  if(selIdx<0||selIdx>=clips.length){
+    pane.innerHTML=`<div class="detail-empty">Select a clip<br><span style="color:#1a1a28;font-size:10px">↑↓ navigate · Enter copy · ←→ pages</span></div>`;return}
+  const c=clips[selIdx];
+  const title=(c.content||'').split('\n')[0].substring(0,120)||'Untitled';
+  pane.innerHTML=`
+    <div class="detail-header">
+      <div class="detail-title">${esc(title)}</div>
+      <div class="detail-meta">
+        ${c.pinned?'<span class="pin-badge">PINNED</span>':''}
+        ${c.slot?`<span class="slot-badge">Slot ${c.slot}</span>`:''}
+        ${(c.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
+        <span class="card-time">${timeAgo(c.ts)}</span>
+      </div>
+    </div>
+    <div class="detail-actions">
+      <button class="dbtn copy-main" onclick="copyIdx(${selIdx})">Copy</button>
+      <button class="dbtn" onclick="toggleEditMode()">✎ Edit</button>
+      <button class="dbtn" onclick="togglePin(${selIdx})">${c.pinned?'Unpin':'Pin'}</button>
+      <button class="dbtn" onclick="assignSlot(${selIdx})">Slot</button>
+      <button class="dbtn" onclick="tagClip(${selIdx})">Tag</button>
+      <button class="dbtn" onclick="moveSelUp()">▲</button>
+      <button class="dbtn" onclick="moveSelDown()">▼</button>
+      <button class="dbtn danger" onclick="deleteClip(${selIdx})">Del</button>
+    </div>
+    <div class="detail-content" id="detailContent">${esc(c.content)}</div>`;
+}
+
+function renderCount(){
+  document.getElementById('filterCount').textContent=getFiltered().length+' clips';
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.toggle('active',t.dataset.f===filter));
+}
+function renderNav(){
+  const tp=totalPages();
+  document.getElementById('navSection').innerHTML=`<b>${page+1}</b>/${tp}`;
+  document.getElementById('navInfo').textContent=clips.length+' total';
+}
+</script>
+<script>
+// ── ACTIONS ──
+function selectClip(idx){selIdx=idx;renderList();renderDetail();
+  if(window.innerWidth<=720)document.getElementById('bodyWrap').classList.add('detail-open')}
+function copyIdx(idx){if(idx>=0&&idx<clips.length)copyText(clips[idx].content)}
+function copySlot(n){const c=clips.find(x=>x.slot===n);if(c)copyText(c.content);else toast('Slot '+n+' empty')}
+function copyText(t){if(!t)return;navigator.clipboard.writeText(t).then(()=>toast('Copied')).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);toast('Copied')})}
+
+function togglePin(idx){
+  clips[idx].pinned=!clips[idx].pinned;
+  if(clips[idx].pinned){const it=clips.splice(idx,1)[0];clips.unshift(it);selIdx=0}
+  saveClipToServer(clips[idx]);reorderOnServer();renderAll();
+}
+function deleteClip(idx){
+  if(!confirm('Delete this clip?'))return;
+  const id=clips[idx].id;clips.splice(idx,1);if(selIdx>=clips.length)selIdx=clips.length-1;
+  deleteClipOnServer(id);renderAll();toast('Deleted');
+}
+function assignSlot(idx){
+  const v=prompt('Assign slot (1-20, blank to clear):',clips[idx].slot||'');
+  if(v===null)return;
+  if(v===''){clips[idx].slot=null}else{
+    const n=parseInt(v);if(isNaN(n)||n<1||n>20){toast('Invalid');return}
+    clips.forEach(c=>{if(c.slot===n)c.slot=null});clips[idx].slot=n;
+  }
+  saveClipToServer(clips[idx]);renderAll();toast('Slot updated');
+}
+function tagClip(idx){
+  const current=(clips[idx].tags||[]).join(', ');
+  const v=prompt('Tags (comma separated):',current);
+  if(v===null)return;
+  clips[idx].tags=v.split(',').map(t=>t.trim()).filter(Boolean);
+  saveClipToServer(clips[idx]);renderAll();toast('Tagged');
+}
+
+// ── MOVE / STICKY ──
+function moveSelUp(){
+  if(selIdx<=0)return;
+  const t=clips[selIdx];clips[selIdx]=clips[selIdx-1];clips[selIdx-1]=t;selIdx--;
+  reorderOnServer();renderAll();
+}
+function moveSelDown(){
+  if(selIdx<0||selIdx>=clips.length-1)return;
+  const t=clips[selIdx];clips[selIdx]=clips[selIdx+1];clips[selIdx+1]=t;selIdx++;
+  reorderOnServer();renderAll();
+}
+function stickyTop(){
+  if(selIdx<1)return;
+  const it=clips.splice(selIdx,1)[0];clips.unshift(it);selIdx=0;
+  reorderOnServer();renderAll();toast('Moved to top');
+}
+function stickyBottom(){
+  if(selIdx<0||selIdx>=clips.length-1)return;
+  const it=clips.splice(selIdx,1)[0];clips.push(it);selIdx=clips.length-1;
+  reorderOnServer();renderAll();toast('Moved to bottom');
+}
+
+// ── INLINE EDIT ──
+function toggleEditMode(){
+  const el=document.getElementById('detailContent');
+  if(!el)return;
+  if(el.contentEditable==='true'){
+    // Save
+    clips[selIdx].content=el.innerText;
+    el.contentEditable='false';el.classList.remove('editing');
+    saveClipToServer(clips[selIdx]);renderAll();toast('Saved');
+  } else {
+    el.contentEditable='true';el.classList.add('editing');el.focus();
+    toast('Editing — click ✎ again to save');
+  }
+}
+
+// ── PAGINATION ──
+function navPage(dir){
+  const tp=totalPages();
+  page=Math.max(0,Math.min(tp-1,page+dir));
+  renderAll();
+}
+function setFilter(f){filter=f;page=0;selIdx=-1;renderAll()}
+</script>
+<script>
+// ── MODAL ──
+function openAdd(){
+  document.getElementById('modalTitle').textContent='NEW CLIP';
+  document.getElementById('editId').value='';
+  document.getElementById('fContent').value='';
+  document.getElementById('fTags').value='';
+  document.getElementById('fSlot').value='';
+  document.getElementById('modalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('fContent').focus(),80);
+}
+function openEdit(idx){
+  const c=clips[idx];
+  document.getElementById('modalTitle').textContent='EDIT CLIP';
+  document.getElementById('editId').value=idx;
+  document.getElementById('fContent').value=c.content;
+  document.getElementById('fTags').value=(c.tags||[]).join(', ');
+  document.getElementById('fSlot').value=c.slot||'';
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function saveClip(){
+  const eidx=document.getElementById('editId').value;
+  const content=document.getElementById('fContent').value.trim();
+  if(!content){toast('Content required');return}
+  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  let slot=parseInt(document.getElementById('fSlot').value);
+  if(isNaN(slot)||slot<1||slot>20)slot=null;
+  if(slot)clips.forEach(c=>{if(c.slot===slot)c.slot=null});
+  if(eidx!==''){const i=parseInt(eidx);clips[i].content=content;clips[i].tags=tags;clips[i].slot=slot;selIdx=i;saveClipToServer(clips[i])}
+  else{const newClip={id:gid(),content,tags,slot,pinned:false,ts:new Date().toISOString()};clips.unshift(newClip);selIdx=0;createClipOnServer(newClip)}
+  closeModal();renderAll();toast(eidx!==''?'Updated':'Added');
+}
+
+// ── IMPORT/EXPORT ──
+function exportData(){
+  const b=new Blob([JSON.stringify(clips,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`pof2828_clips_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(a.href);toast('Exported');
+}
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();r.onload=function(ev){
+    try{const d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw 0;
+    const ids=new Set(clips.map(c=>c.id));let n=0;
+    d.forEach(x=>{if(!x.id)x.id=gid();if(!ids.has(x.id)){if(!x.ts)x.ts=new Date().toISOString();clips.push(x);createClipOnServer(x);n++}});
+    renderAll();toast('Imported '+n)}catch{toast('Invalid file')}
+  };r.readAsText(file);e.target.value='';
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  const modal=document.getElementById('modalBg').classList.contains('open');
+  const editing=document.getElementById('detailContent')?.contentEditable==='true';
+  const inInput=document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA';
+  if(e.key==='Escape'){if(modal)closeModal();else if(editing)toggleEditMode();return}
+  if(modal||editing||inInput)return;
+
+  // Arrow Up/Down = navigate clips
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    const f=getFiltered();if(!f.length)return;e.preventDefault();
+    const cur=f.indexOf(clips[selIdx]);
+    const nxt=e.key==='ArrowDown'?(cur<f.length-1?cur+1:0):(cur>0?cur-1:f.length-1);
+    selIdx=clips.indexOf(f[nxt]);
+    // Auto-page
+    const pageOfSel=Math.floor(nxt/PAGE_SIZE);if(pageOfSel!==page){page=pageOfSel}
+    renderAll();
+    const s=document.querySelector('.card.selected');if(s)s.scrollIntoView({block:'nearest'});
+  }
+  // Arrow Left/Right = page through history
+  if(e.key==='ArrowLeft'){e.preventDefault();navPage(-1)}
+  if(e.key==='ArrowRight'){e.preventDefault();navPage(1)}
+  // Enter = copy selected
+  if(e.key==='Enter'){if(selIdx>=0&&selIdx<clips.length)copyIdx(selIdx)}
+  // Ctrl+F = search
+  if(e.ctrlKey&&e.key==='f'){e.preventDefault();document.getElementById('searchInput').focus()}
+  // Ctrl+Shift+N = new
+  if(e.ctrlKey&&e.shiftKey&&e.key==='N'){e.preventDefault();openAdd()}
+  // Ctrl+Shift+V = paste new clip from system clipboard
+  if(e.ctrlKey&&e.shiftKey&&e.key==='V'){e.preventDefault();
+    navigator.clipboard.readText().then(t=>{if(t?.trim()){
+      const nc={id:gid(),content:t.trim(),tags:[],slot:null,pinned:false,ts:new Date().toISOString()};
+      clips.unshift(nc);selIdx=0;createClipOnServer(nc);renderAll();toast('Captured')}}).catch(()=>toast('Clipboard denied'))}
+  // Ctrl+Shift+1-0 = copy from slot
+  if(e.ctrlKey&&e.shiftKey){
+    let s=null;
+    if(e.key>='1'&&e.key<='9')s=parseInt(e.key);
+    else if(e.key==='0')s=10;
+    if(s>=1&&s<=10){e.preventDefault();copySlot(s)}}
+});
+
+document.getElementById('searchInput').addEventListener('input',e=>{search=e.target.value;page=0;renderAll()});
+
+// ── HELPERS ──
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function timeAgo(iso){if(!iso)return'';const s=(Date.now()-new Date(iso).getTime())/1000;
+  if(s<60)return'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';
+  if(s<2592000)return Math.floor(s/86400)+'d';return Math.floor(s/2592000)+'mo'}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1400)}
+
+// ── INIT ──
+async function init(){restoreWindowPos();await load();renderAll();lastRenderSignature=currentSignature()}
+init();
+setMode('hotkeys');
+// Poll server every 2s for new clips from AHK clipboard monitor
+setInterval(async()=>{
+  const oldSig=currentSignature();
+  await load();
+  const newSig=currentSignature();
+  if(newSig!==oldSig){
+    renderAll();
+    if(clips.length && newSig!==lastRenderSignature) toast('SYNCED');
+    lastRenderSignature=newSig;
+  }
+},2000);
+</script>
+</body>
+</html>

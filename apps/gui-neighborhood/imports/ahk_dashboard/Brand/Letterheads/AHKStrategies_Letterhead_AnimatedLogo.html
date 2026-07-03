@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHKStrategies Official Letterhead | Where Human Intuition and Artificial Intelligence Move as One</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #0A192F;
+            --secondary-navy: #112240;
+            --accent-gold: #D4AF37;
+            --light-gold: #F4E5B1;
+            --electric-blue: #00D9FF;
+            --vibrant-purple: #A78BFA;
+            --neon-green: #4ADE80;
+            --white: #FFFFFF;
+            --light-slate: #CCD6F6;
+            --slate: #8892B0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: var(--primary-navy);
+            color: var(--light-slate);
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* === ANIMATED BACKGROUND === */
+        .gradient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.08;
+            z-index: 0;
+            pointer-events: none;
+            animation: orbFloat 18s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-gold), transparent);
+            top: -200px;
+            right: -200px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--electric-blue), transparent);
+            bottom: -150px;
+            left: -150px;
+            animation-delay: -7s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 0.08;
+            }
+            50% {
+                transform: scale(1.2) translateY(-30px) rotate(180deg);
+                opacity: 0.15;
+            }
+        }
+
+        /* === FLOATING SHAPES === */
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.04;
+            animation: shapeFloat 35s infinite ease-in-out;
+        }
+
+        .shape.circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue));
+        }
+
+        .shape.diamond {
+            width: 70px;
+            height: 70px;
+            background: var(--neon-green);
+            transform: rotate(45deg);
+        }
+
+        .shape:nth-child(1) { top: 15%; left: 8%; animation-duration: 32s; }
+        .shape:nth-child(2) { top: 70%; right: 10%; animation-duration: 38s; animation-delay: -8s; }
+        .shape:nth-child(3) { bottom: 20%; left: 12%; animation-duration: 35s; animation-delay: -15s; }
+
+        @keyframes shapeFloat {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+            33% { transform: translateY(-50px) translateX(40px) rotate(120deg); }
+            66% { transform: translateY(40px) translateX(-40px) rotate(240deg); }
+        }
+
+        /* === LETTERHEAD CONTAINER === */
+        .letterhead {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-navy) 100%);
+            padding: 25mm 20mm;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* === HEADER SECTION === */
+        .header {
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(90deg, var(--accent-gold), var(--electric-blue), var(--accent-gold)) 1;
+            padding-bottom: 25px;
+            margin-bottom: 40px;
+            position: relative;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--light-gold));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+
+        .logo-icon video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 35px rgba(212, 175, 55, 0.6); }
+        }
+
+        .company-name {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .company-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 42px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue), var(--accent-gold));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 5px;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .company-tagline {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--light-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-badge {
+            background: linear-gradient(135deg, var(--neon-green), #059669);
+            color: var(--white);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+            animation: badgeGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4); }
+            50% { box-shadow: 0 6px 25px rgba(74, 222, 128, 0.7); }
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            font-size: 11px;
+            color: var(--slate);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            color: var(--accent-gold);
+            transform: translateX(3px);
+        }
+
+        .contact-icon {
+            font-size: 16px;
+            color: var(--electric-blue);
+        }
+
+        /* === CONTENT AREA === */
+        .content {
+            min-height: 180mm;
+            padding: 20px 0;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .date-ref {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 11px;
+            color: var(--slate);
+        }
+
+        .date-ref strong {
+            color: var(--light-gold);
+        }
+
+        .recipient {
+            margin-bottom: 35px;
+            line-height: 1.8;
+            color: var(--light-slate);
+        }
+
+        .recipient strong {
+            color: var(--accent-gold);
+            font-size: 14px;
+        }
+
+        .salutation {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--light-slate);
+            margin-bottom: 25px;
+        }
+
+        .body-text {
+            font-size: 12px;
+            line-height: 1.9;
+            color: var(--light-slate);
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .body-text strong {
+            color: var(--light-gold);
+        }
+
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .signature-line {
+            font-size: 13px;
+            color: var(--light-slate);
+            line-height: 1.6;
+        }
+
+        .signature-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-top: 10px;
+        }
+
+        .signature-title {
+            font-size: 12px;
+            color: var(--slate);
+            font-style: italic;
+        }
+
+        /* === FOOTER SECTION === */
+        .footer {
+            border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, var(--accent-gold), var(--electric-blue), var(--accent-gold)) 1;
+            padding-top: 20px;
+            margin-top: 40px;
+            text-align: center;
+            animation: fadeInUp 1.5s ease-out;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .footer-text {
+            font-size: 10px;
+            color: var(--slate);
+            margin-bottom: 5px;
+        }
+
+        .footer-link {
+            color: var(--accent-gold);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .footer-link:hover {
+            color: var(--electric-blue);
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .footer-confidential {
+            font-size: 9px;
+            color: var(--slate);
+            margin-top: 10px;
+            opacity: 0.7;
+        }
+
+        /* === WATERMARK === */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 120px;
+            font-weight: 900;
+            color: rgba(212, 175, 55, 0.03);
+            z-index: 0;
+            pointer-events: none;
+            letter-spacing: 10px;
+        }
+
+        /* === PRINT STYLES === */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .letterhead {
+                box-shadow: none;
+                border: none;
+                page-break-after: always;
+            }
+
+            .gradient-orb,
+            .floating-shapes {
+                display: none;
+            }
+        }
+
+        /* === CUSTOM SCROLLBAR === */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--primary-navy);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--light-gold), var(--neon-green));
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FLOATING ANIMATED SHAPES -->
+    <div class="floating-shapes">
+        <div class="shape circle"></div>
+        <div class="shape diamond"></div>
+        <div class="shape circle"></div>
+    </div>
+
+    <!-- GRADIENT ORBS -->
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+
+    <!-- WATERMARK -->
+    <div class="watermark">AHK</div>
+
+    <!-- LETTERHEAD -->
+    <div class="letterhead">
+        
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="company-logo">
+                    <div class="logo-icon">
+                        <video autoplay loop muted playsinline>
+                            <source src="C:\Users\ashra\Downloads\3D-animated-logo.mp4" type="video/mp4">
+                            🧠
+                        </video>
+                    </div>
+                    <div class="company-name">
+                        <div class="company-title">AHKStrategies</div>
+                        <div class="company-tagline">Where Human Intuition and Artificial Intelligence Move as One</div>
+                    </div>
+                </div>
+                <div class="header-badge">Your Gateway to Strategic Consciousness</div>
+            </div>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span class="contact-icon">📍</span>
+                    <span>Cairo, Egypt | Dubai, UAE</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">📧</span>
+                    <span>ashraf@ahkstrategies.net</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🌐</span>
+                    <span><a href="https://www.ahkstrategies.net" target="_blank" class="footer-link" style="text-decoration: none;">www.ahkstrategies.net</a></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <div class="content">
+            
+            <!-- DATE & REFERENCE -->
+            <div class="date-ref">
+                <div><strong>Date:</strong> November 6, 2025</div>
+                <div><strong>Ref:</strong> AHK/IPD/2025/001</div>
+            </div>
+
+            <!-- RECIPIENT -->
+            <div class="recipient">
+                <strong>To:</strong><br>
+                [Recipient Name]<br>
+                [Recipient Title]<br>
+                [Company Name]<br>
+                [Address]
+            </div>
+
+            <!-- SALUTATION -->
+            <div class="salutation">
+                Dear [Recipient Name],
+            </div>
+
+            <!-- BODY TEXT -->
+            <div class="body-text">
+                We are pleased to present this correspondence on behalf of <strong>AHKStrategies</strong>, a leading strategic advisory and industrial project development firm specializing in <strong>MENA region mobility solutions</strong>, <strong>green logistics infrastructure</strong>, and <strong>industrial localization initiatives</strong>.
+            </div>
+
+            <div class="body-text">
+                Our mandate encompasses the strategic planning, financial modeling, and operational execution of transformative industrial projects across the Middle East and North Africa. With a proven track record in <strong>electric vehicle ecosystems</strong>, <strong>dual-vector mobility programs</strong>, and <strong>public-private partnership frameworks</strong>, we deliver investment-grade feasibility studies and market entry strategies that align with national economic visions including <strong>Saudi Vision 2030</strong>, <strong>UAE Dubai Plan 2040</strong>, and <strong>Egypt Vision 2030</strong>.
+            </div>
+
+            <div class="body-text">
+                This document serves as official correspondence regarding [<em>specific purpose or project reference</em>]. We invite you to engage in further discussions to explore mutually beneficial collaboration opportunities that leverage our regional expertise, government relations network, and operational intelligence.
+            </div>
+
+            <div class="body-text">
+                Should you require additional information, technical documentation, or wish to schedule a strategic consultation, please do not hesitate to contact our office at your earliest convenience.
+            </div>
+
+            <div class="body-text">
+                We look forward to the opportunity to contribute to your organization's strategic objectives and regional expansion initiatives.
+            </div>
+
+            <!-- SIGNATURE -->
+            <div class="signature-section">
+                <div class="signature-line">Respectfully yours,</div>
+                <div class="signature-name">[Your Name]</div>
+                <div class="signature-title">Founder & CEO</div>
+                <div class="signature-title">AHKStrategies</div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-logo">AHKStrategies</div>
+            <div class="footer-text">Where Human Intuition and Artificial Intelligence Move as One | Strategic Advisory & Market Intelligence</div>
+            <div class="footer-text">
+                <a href="https://www.ahkstrategies.net" target="_blank" class="footer-link">www.ahkstrategies.net</a> | 
+                <a href="mailto:ashraf@ahkstrategies.net" class="footer-link">ashraf@ahkstrategies.net</a>
+            </div>
+            <div class="footer-confidential">
+                CONFIDENTIAL & PROPRIETARY | © 2025 AHKStrategies – All Rights Reserved
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

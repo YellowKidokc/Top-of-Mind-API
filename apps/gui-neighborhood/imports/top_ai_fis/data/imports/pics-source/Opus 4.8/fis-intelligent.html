@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>River FIS · Intelligent mode</title>
+<style>
+  :root{
+    --bg:#0a0d14;--bg2:#0d1220;--card:#121826;--card2:#0f1420;--line:#1e2636;--line2:#2a3346;
+    --ink:#eef2f8;--mut:#94a0b4;--dim:#5e6a80;
+    --gold:#e8c468;--teal:#3dd1c4;--blue:#5b9bff;--green:#3ed598;--amber:#f0a83d;
+    --sans:'Inter',-apple-system,Segoe UI,sans-serif;--serif:'Georgia','Times New Roman',serif;
+    --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#101a2e 0%,var(--bg) 55%);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+  .wrap{max-width:920px;margin:0 auto;padding:18px 24px 80px}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:8px}
+  .logo{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:1px;color:var(--mut)}
+  .logo b{color:var(--ink);font-weight:600;letter-spacing:2px}
+  .logo .gem{color:var(--gold)}
+  .toggle{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .toggle span{padding:6px 14px;font-size:12px;color:var(--mut);cursor:default}
+  .toggle .on{background:#172033;color:var(--ink)}
+  .conn{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:7px}
+  .conn .d{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+  .hero{text-align:center;padding:46px 0 30px}
+  .kicker{font-size:11px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:18px}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:52px;line-height:1.05;margin:0}
+  .hero h1 .g{color:var(--gold);font-style:italic}
+  .hero p{color:var(--mut);font-size:16px;max-width:540px;margin:16px auto 0}
+  .flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;font-size:12px;color:var(--mut)}
+  .flow b{color:var(--ink);font-weight:500}
+  .flow .s{color:var(--dim)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-top:18px}
+  .ask label{font-size:12px;color:var(--mut);display:block;margin-bottom:8px}
+  .ask .row{display:flex;gap:10px;flex-wrap:wrap}
+  .ask input{flex:1;min-width:260px;background:var(--card2);border:1px solid var(--line2);border-radius:10px;color:var(--ink);font-family:var(--mono);font-size:13px;padding:13px 14px}
+  .ask input::placeholder{color:var(--dim)}
+  .btn{border:none;border-radius:10px;padding:13px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+  .btn.gold{background:var(--gold);color:#1a1304}
+  .btn.gold:hover{background:#f0d078}
+  .btn.ghost{background:transparent;color:var(--mut);border:1px solid var(--line2)}
+  .btn.green{background:var(--green);color:#062417}
+  .btn.big{width:100%;padding:16px;font-size:15px;margin-top:8px}
+  .hide{display:none}
+  .lead{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 14px}
+  .understand{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+  .uicon{width:46px;height:46px;border-radius:12px;background:#172033;display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto}
+  .ut{font-size:18px;font-weight:600;margin:0}
+  .us{color:var(--mut);font-size:14px;margin:4px 0 0}
+  .conf{margin-left:auto;text-align:right}
+  .conf .n{font-size:24px;font-weight:700;color:var(--teal)}
+  .conf .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:18px}
+  .stat{background:var(--card2);border-radius:12px;padding:14px}
+  .stat .n{font-size:22px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--mut);margin-top:2px}
+  .stat.warn .n{color:var(--amber)} .stat.bad .n{color:#ff6b6b} .stat.good .n{color:var(--green)}
+  .plan{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+  .col{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .col.auto{border-top:3px solid var(--green)}
+  .col.review{border-top:3px solid var(--amber)}
+  .col h3{margin:0 0 4px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .col .sub{font-size:12px;color:var(--mut);margin-bottom:14px}
+  .item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:0}
+  .item .t{flex:1;font-size:13px}
+  .item .c{font-size:12px;color:var(--mut);font-family:var(--mono)}
+  .sw{width:34px;height:20px;border-radius:20px;background:#28406a;position:relative;flex:0 0 auto;cursor:pointer}
+  .sw::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--green)}
+  .sw.off{background:#2a3346}.sw.off::after{right:auto;left:2px;background:#5e6a80}
+  .tagr{font-size:11px;color:var(--amber);border:1px solid #3a2e14;background:#1c1608;border-radius:6px;padding:3px 9px}
+  .done .big-num{font-size:40px;font-weight:700;color:var(--green);font-family:var(--serif)}
+  .recap{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .pill{background:var(--card2);border-radius:10px;padding:10px 14px;font-size:13px}
+  .pill b{color:var(--teal)}
+  .muted{color:var(--dim);font-size:12px}
+  .center{text-align:center}
+  @media(max-width:680px){.hero h1{font-size:38px}.plan{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <div class="logo"><span class="gem">◆</span><b>RIVER FIS</b> · file intelligence system · simple mode</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="toggle"><span class="on">Simple</span><span>Advanced</span></div>
+      <div class="conn"><span class="d"></span>engine connected</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="kicker">file intelligence system · simple mode</div>
+    <h1>One folder.<br><span class="g">One guided action.</span></h1>
+    <p>Point River at a folder. It reads everything, tells you what it found, fixes what it's sure about, and only asks you about the rest.</p>
+    <div class="flow"><b>scan</b><span class="s">→</span><b>understand</b><span class="s">→</span><b>approve</b><span class="s">→</span><b>done</b></div>
+  </div>
+
+  <div class="card ask">
+    <label>which folder should I clean up?</label>
+    <div class="row">
+      <input id="path" value="D:\DONT TOUCH BOOT UP\PICS" />
+      <button class="btn gold" onclick="understand()">Understand this folder →</button>
+    </div>
+    <div style="margin-top:12px">
+      <label>or just tell me in plain english</label>
+      <input placeholder="&quot;pull all my screenshots into one dated folder and toss the duplicates&quot;" />
+    </div>
+  </div>
+
+  <!-- STEP 2: understanding + plan -->
+  <div id="result" class="hide">
+    <div class="card">
+      <p class="lead">what I understand</p>
+      <div class="understand">
+        <div class="uicon">🖼️</div>
+        <div>
+          <p class="ut">This is a personal image &amp; reference folder.</p>
+          <p class="us">Mostly screenshots and generated images, some duplicates, weak auto-names. No program or project roots — safe to sort.</p>
+        </div>
+        <div class="conf"><div class="n">82%</div><div class="l">confidence</div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n">12,843</div><div class="l">files</div></div>
+        <div class="stat bad"><div class="n">1,234</div><div class="l">duplicates</div></div>
+        <div class="stat warn"><div class="n">312</div><div class="l">weak names</div></div>
+        <div class="stat warn"><div class="n">47</div><div class="l">empty folders</div></div>
+        <div class="stat good"><div class="n">0</div><div class="l">at-risk roots</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="lead">here's my plan — you can change anything</p>
+      <div class="plan">
+        <div class="col auto">
+          <h3 style="color:var(--green)">✓ I'll handle these</h3>
+          <div class="sub">high confidence — safe &amp; reversible</div>
+          <div class="item"><span class="t">Remove duplicates (keep newest)</span><span class="c">1,234</span><span class="sw" onclick="this.classList.toggle('off')"></span></div>
+          <div class="item"><span class="t">Sort images by date</span><span class="c">8,402</span><span class="sw" onclick="this.classList.toggle('off')"></span></div>
+          <div class="item"><span class="t">Delete empty folders</span><span class="c">47</span><span class="sw" onclick="this.classList.toggle('off')"></span></div>
+          <div class="item"><span class="t">Quarantine junk / temp</span><span class="c">389</span><span class="sw" onclick="this.classList.toggle('off')"></span></div>
+        </div>
+        <div class="col review">
+          <h3 style="color:var(--amber)">? I'll ask you</h3>
+          <div class="sub">lower confidence — needs your call</div>
+          <div class="item"><span class="t">Rename 312 weak filenames</span><span class="tagr">review</span></div>
+          <div class="item"><span class="t">18 files might be personal, not reference</span><span class="tagr">review</span></div>
+          <div class="item"><span class="t">5 files I couldn't read</span><span class="tagr">review</span></div>
+        </div>
+      </div>
+      <button class="btn gold big" onclick="run()">Approve &amp; run — reclaim ~3.7 GB</button>
+      <p class="center muted" style="margin-top:10px">nothing is permanent · everything goes to the ledger · one click undoes it all</p>
+    </div>
+  </div>
+
+  <!-- STEP 3: done -->
+  <div id="done" class="hide">
+    <div class="card done center">
+      <p class="lead">done</p>
+      <div class="big-num">3.68 GB reclaimed</div>
+      <p class="us" style="max-width:520px;margin:8px auto 0">I cleaned what I was sure about and set the rest aside for you. Here's exactly what happened.</p>
+      <div class="recap" style="justify-content:center">
+        <div class="pill"><b>1,234</b> duplicates removed</div>
+        <div class="pill"><b>8,402</b> images sorted by date</div>
+        <div class="pill"><b>47</b> empty folders deleted</div>
+        <div class="pill"><b>389</b> junk files quarantined</div>
+        <div class="pill"><b>335</b> items waiting for your review</div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+        <button class="btn green" onclick="alert('opens the 335-item review queue')">Review the 335 →</button>
+        <button class="btn ghost" onclick="alert('opens the before/after report')">View full report</button>
+        <button class="btn ghost" onclick="reset()">↺ undo everything</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function understand(){document.getElementById("result").classList.remove("hide");document.getElementById("result").scrollIntoView({behavior:"smooth"});}
+function run(){document.getElementById("done").classList.remove("hide");document.getElementById("done").scrollIntoView({behavior:"smooth"});}
+function reset(){document.getElementById("done").classList.add("hide");document.getElementById("result").classList.add("hide");window.scrollTo({top:0,behavior:"smooth"});}
+</script>
+</body>
+</html>

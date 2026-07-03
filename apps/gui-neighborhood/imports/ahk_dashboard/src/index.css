@@ -1,0 +1,438 @@
+/* Emma Avatar Animations - must precede @tailwind directives */
+@import url('./styles/emma-animations.css');
+
+/* 🎨 AHKStrategies Premium Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Roboto:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✨ Premium Design System - Inspired by AHK Letterhead Masterpiece */
+:root {
+  /* Navy Depths - Professional Foundation */
+  --primary-navy: #0A192F;
+  --secondary-navy: #112240;
+  
+  /* Signature Gold - Luxury Accent */
+  --accent-gold: #D4AF37;
+  --light-gold: #F4E5B1;
+  
+  /* Electric Tech Blue */
+  --electric-blue: #00D9FF;
+  
+  /* Premium Success Green */
+  --neon-green: #4ADE80;
+  
+  /* Sophisticated Text */
+  --light-slate: #CCD6F6;
+  --slate: #8892B0;
+  --white: #FFFFFF;
+  
+  /* Glass Morphism */
+  --glass-bg: rgba(10, 25, 47, 0.7);
+  --glass-border: rgba(212, 175, 55, 0.2);
+  --glass-hover: rgba(212, 175, 55, 0.1);
+  
+  /* Premium Shadows */
+  --shadow-gold-sm: 0 2px 8px rgba(212, 175, 55, 0.2);
+  --shadow-gold-md: 0 4px 16px rgba(212, 175, 55, 0.3);
+  --shadow-gold-lg: 0 8px 32px rgba(212, 175, 55, 0.4);
+  --shadow-premium: 0 20px 60px rgba(10, 25, 47, 0.5);
+}
+
+/* 🌌 Global Premium Transitions */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    font-family: 'Roboto', 'Inter', sans-serif;
+    background: var(--primary-navy);
+    color: var(--light-slate);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 🌀 Animated Gradient Orbs (from letterhead) */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-gold), transparent);
+    filter: blur(120px);
+    opacity: 0.08;
+    z-index: 0;
+    pointer-events: none;
+    animation: orbFloat 18s infinite ease-in-out;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--electric-blue), transparent);
+    filter: blur(120px);
+    opacity: 0.08;
+    z-index: 0;
+    pointer-events: none;
+    animation: orbFloat 18s infinite ease-in-out;
+    animation-delay: -7s;
+  }
+
+  /* 🔷 Floating Geometric Shapes */
+  body .floating-shapes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  body .floating-shapes .shape {
+    position: absolute;
+    opacity: 0.04;
+    animation: shapeFloat 35s infinite ease-in-out;
+  }
+
+  body .floating-shapes .shape.circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue));
+  }
+
+  body .floating-shapes .shape.diamond {
+    width: 70px;
+    height: 70px;
+    background: var(--neon-green);
+    transform: rotate(45deg);
+  }
+
+  body .floating-shapes .shape:nth-child(1) { top: 15%; left: 8%; animation-duration: 32s; }
+  body .floating-shapes .shape:nth-child(2) { top: 70%; right: 10%; animation-duration: 38s; animation-delay: -8s; }
+  body .floating-shapes .shape:nth-child(3) { bottom: 20%; left: 12%; animation-duration: 35s; animation-delay: -15s; }
+}
+
+@layer components {
+  /* 💎 Premium Glass Card */
+  .card {
+    background: linear-gradient(135deg, rgba(10, 25, 47, 0.8), rgba(17, 34, 64, 0.8));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-premium);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+      rgba(212, 175, 55, 0.1) 0%, 
+      transparent 50%, 
+      rgba(0, 217, 255, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .card:hover {
+    border-color: var(--accent-gold);
+    box-shadow: 0 8px 32px rgba(212, 175, 55, 0.4);
+    transform: translateY(-4px);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  /* 🔥 Premium Gold Gradient Border */
+  .card-gold-border {
+    border: 3px solid transparent;
+    border-image: linear-gradient(90deg, var(--accent-gold), var(--electric-blue), var(--accent-gold)) 1;
+  }
+  
+  /* ⚡ Primary Action Button */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-gold), var(--light-gold));
+    color: var(--primary-navy);
+    padding: 12px 32px;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+  }
+
+  .btn-primary:active {
+    transform: translateY(-1px);
+  }
+  
+  /* 🎯 Secondary Action Button */
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--electric-blue), #0082a3);
+    color: var(--white);
+    padding: 12px 32px;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 217, 255, 0.6);
+  }
+  
+  /* 💫 Premium Metric Card */
+  .metric-card {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(0, 217, 255, 0.1));
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 28px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-gold-md);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue));
+    opacity: 0.05;
+    transition: opacity 0.3s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(212, 175, 55, 0.5);
+    border-color: var(--accent-gold);
+  }
+
+  .metric-card:hover::before {
+    opacity: 0.15;
+  }
+
+  /* 🌟 Premium Badge */
+  .badge-premium {
+    background: linear-gradient(135deg, var(--neon-green), #059669);
+    color: var(--white);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+    animation: badgeGlow 2s ease-in-out infinite;
+  }
+
+  /* 📊 Premium Table */
+  .table-premium {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-premium thead th {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(0, 217, 255, 0.1));
+    color: var(--accent-gold);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 2px solid var(--accent-gold);
+  }
+
+  .table-premium tbody tr {
+    border-bottom: 1px solid var(--glass-border);
+    transition: all 0.2s ease;
+  }
+
+  .table-premium tbody tr:hover {
+    background: rgba(212, 175, 55, 0.05);
+  }
+
+  .table-premium tbody td {
+    padding: 16px 20px;
+    color: var(--light-slate);
+    font-size: 0.875rem;
+  }
+}
+
+/* ✨ Premium Animations (from letterhead) */
+@keyframes orbFloat {
+  0%, 100% {
+    transform: scale(1) translateY(0) rotate(0deg);
+    opacity: 0.08;
+  }
+  50% {
+    transform: scale(1.2) translateY(-30px) rotate(180deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes shapeFloat {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  33% { transform: translateY(-50px) translateX(40px) rotate(120deg); }
+  66% { transform: translateY(40px) translateX(-40px) rotate(240deg); }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes logoPulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4); 
+  }
+  50% { 
+    transform: scale(1.05); 
+    box-shadow: 0 12px 35px rgba(212, 175, 55, 0.6); 
+  }
+}
+
+@keyframes badgeGlow {
+  0%, 100% { box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4); }
+  50% { box-shadow: 0 6px 25px rgba(74, 222, 128, 0.7); }
+}
+
+@keyframes fadeInDown {
+  0% { opacity: 0; transform: translateY(-30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.6); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* 🎬 Page Transition Animation */
+.page-transition {
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 🎤 Smart Voice Engine v2 Mic Glow Styles */
+.mic-glow-on {
+  background: radial-gradient(closest-side, rgba(212, 175, 55, 0.35), transparent 70%);
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+.mic-glow-off { background: transparent; }
+@keyframes micPulse {
+  0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.35); }
+  70% { box-shadow: 0 0 0 18px rgba(212, 175, 55, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+
+/* 🎨 Custom Scrollbar - Premium Gold */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-navy);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue));
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--light-gold), var(--neon-green));
+}
+
+/* 🌟 Text Gradient Utility */
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--accent-gold), var(--light-gold));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 8s ease infinite;
+}
+
+.text-gradient-electric {
+  background: linear-gradient(135deg, var(--accent-gold), var(--electric-blue), var(--accent-gold));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 8s ease infinite;
+}
+
+/* Smart Voice Console Button Hover Styles */
+button.bg-green-600:hover { background-color: #059669; }
+button.bg-red-600:hover { background-color: #dc2626; }
+

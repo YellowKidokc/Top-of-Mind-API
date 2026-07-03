@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POF 2828 - Clipboard</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="icon" href="/clip-icon.svg">
+<link rel="apple-touch-icon" href="/clip-icon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
+*{box-sizing:border-box}
+:root{
+  --bg:#0a0c10;--pane:#10131a;--card:#151923;--card2:#1b202c;--line:#252b3a;
+  --text:#d8dbe5;--muted:#858a9b;--dim:#555b6f;--gold:#e8a912;--cyan:#4ac4d4;
+  --green:#31d08f;--red:#dc5a5a;--purple:#8d7ce2;--font:'DM Mono','Cascadia Mono','Menlo',monospace;
+}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:11px;
+  display:flex;flex-direction:column;overflow:hidden;max-width:460px;margin-inline:auto;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#30364a;border-radius:4px}
+.topbar{display:flex;align-items:center;gap:7px;padding:6px;background:var(--pane);border-bottom:1px solid var(--line);flex-shrink:0}
+.brand{color:var(--gold);font-size:10px;font-weight:500;letter-spacing:1.4px;white-space:nowrap}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);flex-shrink:0}
+.status-dot.offline{background:var(--red);box-shadow:0 0 7px var(--red)}
+.search-wrap{position:relative;flex:1}
+.search-input{width:100%;background:#080a0e;border:1px solid var(--line);border-radius:6px;color:var(--text);outline:none;padding:7px 8px 7px 24px;font-size:11px}
+.search-input:focus{border-color:var(--gold)}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--dim)}
+.tab-bar{display:flex;align-items:stretch;background:var(--pane);border-bottom:1px solid var(--line);flex-shrink:0}
+.tab{flex:1;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:7px 4px;text-transform:uppercase;letter-spacing:.6px;font-size:9px}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+#customTabs{display:flex;min-width:0}
+.pin-deck{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:5px 6px;background:#0d1016;border-bottom:1px solid var(--line);flex-shrink:0}
+.pin-slot{min-width:0;background:var(--card);border:1px solid rgba(232,169,18,.25);border-radius:6px;color:var(--gold);padding:5px 4px;text-align:left}
+.pin-slot.empty{border-color:var(--line);color:var(--dim)}
+.pin-kicker{display:block;font-size:7px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.pin-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:9px;line-height:1.25}
+.card-scroll{flex:1;overflow-y:auto;padding:5px 6px;scroll-behavior:auto}
+.history-list{display:flex;flex-direction:column;gap:5px}.quick-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}.quick-list .section-hdr{grid-column:1/-1}
+.history-row{background:var(--card);border:1px solid var(--line);border-radius:7px;display:grid;grid-template-columns:110px 1fr 35px 44px;gap:5px;align-items:stretch;padding:6px;min-height:74px}
+.quick-row{background:var(--card);border:1px solid var(--line);border-radius:7px;display:flex;flex-direction:column;gap:5px;padding:6px;min-height:56px}
+.quick-row .clip-main{flex:1}
+.quick-row .row-actions{display:flex;gap:4px;margin-top:auto}
+.quick-row .copy-big{flex:1;min-height:32px;font-size:13px;letter-spacing:.5px}
+.quick-row .tiny-btn{min-height:32px;width:36px;font-size:15px}
+.quick-row .clip-title{font-size:12px;line-height:1.2;-webkit-line-clamp:2}
+.quick-row .clip-preview{font-size:9px}
+.quick-row.filled{border-color:rgba(232,169,18,.25)}
+.quick-row.pinned,.history-row.pinned{border-left:4px solid var(--gold)}
+.copy-big{border:1px solid rgba(49,208,143,.35);background:rgba(49,208,143,.12);color:var(--green);border-radius:6px;font-size:20px;font-weight:500;letter-spacing:.7px;min-height:60px}
+.copy-big:hover{background:rgba(49,208,143,.2)}
+.clip-main{min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.clip-title{font-size:18px;line-height:1.1;color:#f0f2f8;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.rownum{color:var(--gold);font-weight:500;font-size:13px;margin-right:6px}
+.clip-preview{font-size:10px;line-height:1.28;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.clip-meta{font-size:8px;color:var(--gold);letter-spacing:.7px;text-transform:uppercase;margin-bottom:2px}
+.tiny-btn{border:1px solid var(--line);background:#0a0d12;color:var(--muted);border-radius:6px;padding:0;min-height:60px;font-size:16px}
+.tiny-btn:hover{border-color:var(--gold);color:var(--gold)}
+.tiny-btn.on{color:var(--gold);background:rgba(232,169,18,.12);border-color:rgba(232,169,18,.3)}
+.delete-btn{font-size:18px;color:var(--red);min-height:30px;align-self:center}
+.empty-save{grid-column:1 / -1;border:1px dashed var(--line);background:#0c0f15;color:var(--muted);border-radius:6px;padding:10px;text-align:left}
+.history-row{grid-template-columns:110px 1fr 35px 35px 44px}
+.history-side{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px}
+.tag{border:1px solid rgba(74,196,212,.2);background:rgba(74,196,212,.08);color:var(--cyan);border-radius:4px;padding:1px 5px;font-size:7px;text-transform:uppercase;letter-spacing:.4px}
+.tag.gold{border-color:rgba(232,169,18,.24);background:rgba(232,169,18,.1);color:var(--gold)}
+.tools-bar,.files-bar,.nav-bar{display:flex;align-items:center;gap:4px;padding:5px 6px;background:var(--pane);border-top:1px solid var(--line);flex-shrink:0}
+.tbtn,.fbtn,.nbtn{background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);min-height:30px;padding:5px 8px}
+.tbtn:hover,.fbtn:hover,.nbtn:hover{border-color:var(--gold);color:var(--gold)}
+.tbtn.on{color:var(--gold);background:rgba(232,169,18,.12);border-color:rgba(232,169,18,.3)}
+.tbtn.add{margin-left:auto;color:var(--gold);background:rgba(232,169,18,.1)}
+.fbtn{flex:1}
+.fbtn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(74,196,212,.08)}
+.nav-info{flex:1;text-align:center;color:var(--muted);font-size:10px}.nav-info b{color:var(--gold)}
+.files-panel{display:none;background:var(--bg);border-top:1px solid var(--line);max-height:210px;overflow-y:auto;flex-shrink:0}
+.files-panel.open{display:block}
+.fp-header{display:flex;align-items:center;justify-content:space-between;padding:7px 8px;background:var(--pane);border-bottom:1px solid var(--line);position:sticky;top:0}
+.fp-title{color:var(--cyan);letter-spacing:1px;text-transform:uppercase;font-size:9px}
+.fp-close{background:transparent;border:0;color:var(--muted);font-size:14px}
+.fp-list{padding:5px}
+.fp-item{display:flex;align-items:center;gap:8px;padding:6px;border-radius:5px;color:var(--text)}
+.fp-item:hover{background:var(--card2)}
+.fp-item-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-item-size,.fp-empty,.fp-loading{color:var(--muted);font-size:9px}.fp-empty,.fp-loading{text-align:center;padding:16px 8px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center;padding:8px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:8px;width:100%;max-width:390px;max-height:88vh;overflow:auto;padding:12px}
+.modal h2{color:var(--gold);font-size:11px;letter-spacing:1.5px;margin:0 0 8px}
+.modal label{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.7px;margin:7px 0 3px}
+.modal input,.modal textarea{width:100%;background:#090b10;border:1px solid var(--line);border-radius:6px;color:var(--text);outline:none;padding:7px}
+.modal textarea{min-height:112px;resize:vertical}
+.mrow{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+.mbtn{border:1px solid var(--line);border-radius:6px;padding:7px 12px;background:transparent;color:var(--muted)}
+.mbtn.save{background:var(--green);border-color:var(--green);color:#06100c}
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(35px);background:var(--gold);color:#050505;padding:5px 13px;border-radius:5px;font-weight:500;z-index:200;transition:transform .18s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;color:var(--dim);padding:26px 8px}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:8px;margin:2px 0}
+.ai-panel{display:flex;flex-direction:column;gap:6px}
+.ai-card{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:9px}
+.ai-card h3{margin:0 0 4px;color:var(--purple);font-size:11px}.ai-card p{margin:0;color:var(--muted);line-height:1.45}
+@media (max-width:390px){
+  .quick-list{grid-template-columns:1fr}
+  .history-row{grid-template-columns:90px 1fr 31px 31px 38px}
+  .copy-big{font-size:16px}.clip-title{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="search-wrap"><span class="search-icon">?</span><input class="search-input" id="searchInput" placeholder="Search clips..." autocomplete="off"></div>
+  <span class="status-dot" id="statusDot"></span><span class="brand">POF 2828</span>
+</div>
+<div class="tab-bar">
+  <button class="tab active" data-tab="hotkeys" onclick="setTab('hotkeys')">Quick Save</button>
+  <button class="tab" data-tab="history" onclick="setTab('history')">History</button>
+  <button class="tab" data-tab="ai" onclick="setTab('ai')">AI</button>
+  <span id="customTabs"></span>
+  <button class="tab" onclick="addCategory()" title="Add category">+</button>
+</div>
+<div class="pin-deck" id="pinDeck"></div>
+<div class="card-scroll" id="cardArea"></div>
+<div class="tools-bar">
+  <button class="tbtn" id="btnPin" onclick="toggleWindowPin()" title="Stay on top">TOP</button>
+  <button class="tbtn" id="btnPos" onclick="saveWindowPos()" title="Save this window position">SAVE PLACE</button>
+  <button class="tbtn" onclick="deduplicate()" title="Remove duplicate unpinned clips">DEDUP</button>
+  <button class="tbtn" onclick="exportData()" title="Export clipboard JSON">EXPORT</button>
+  <button class="tbtn" onclick="document.getElementById('fileInput').click()" title="Import clipboard JSON">IMPORT</button>
+  <button class="tbtn add" onclick="openAdd()">+ NEW</button>
+</div>
+<div class="files-bar">
+  <button class="fbtn" data-folder="documents" onclick="toggleFiles('documents')">Docs</button>
+  <button class="fbtn" data-folder="videos" onclick="toggleFiles('videos')">Video</button>
+  <button class="fbtn" data-folder="music" onclick="toggleFiles('music')">Music</button>
+  <button class="fbtn" data-folder="pictures" onclick="toggleFiles('pictures')">Pics</button>
+</div>
+<div class="files-panel" id="filesPanel">
+  <div class="fp-header"><span class="fp-title" id="fpTitle">Documents</span><button class="fp-close" onclick="closeFiles()">x</button></div>
+  <div class="fp-list" id="fpList"></div>
+</div>
+<div class="nav-bar">
+  <button class="nbtn" onclick="navPage(-1)">PREV</button>
+  <button class="nbtn" onclick="navPage(1)">NEXT</button>
+  <span class="nav-info"><b id="pn">1</b>/<span id="pt">1</span> - <span id="cc">0</span></span>
+</div>
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2 id="modalTitle">NEW CLIP</h2>
+    <input type="hidden" id="editId">
+    <label>Content</label><textarea id="fContent" placeholder="Paste or type..."></textarea>
+    <label>Tags (comma separated)</label><input id="fTags" placeholder="prompt, code, url">
+    <label>Quick-save row (1-100)</label><input id="fSlot" type="number" min="1" max="100" placeholder="e.g. 5">
+    <div class="mrow"><button class="mbtn" onclick="closeModal()">Cancel</button><button class="mbtn save" onclick="saveClip()">Save</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)">
+<script>
+const API_ENDPOINTS=[
+  // prefer the SAME server that served this page (works when launched locally) ...
+  (location.protocol==='http:'||location.protocol==='https:')?location.origin+'/api':'http://localhost:3456/api',
+  'http://localhost:3456/api',
+  'http://127.0.0.1:3456/api',
+  // ... then LAN, then the cloud copy
+  'http://192.168.1.177:3456/api',
+  'http://clipboard.dlowehomelab.com/api'
+];
+let API=API_ENDPOINTS[0];
+const SLOT_COUNT=100;
+const PIN_SLOTS=5;
+const PAGE_SIZE=100;
+const WINDOW_TITLE='POF 2828 - Clipboard';
+const POLL_INTERVAL=2000;
+let clips=[],pg=0,tab='hotkeys',search='',windowPinned=false,serverOnline=false,activeFolder=null;
+let categories=JSON.parse(localStorage.getItem('pof_categories')||'[]');
+let aiMessages=JSON.parse(localStorage.getItem('pof_ai_messages')||'[]');
+
+async function detectAPI(){
+  for(const ep of API_ENDPOINTS){
+    try{
+      const r=await fetch(ep+'/clips?limit=1',{signal:AbortSignal.timeout(1200)});
+      if(r.ok){API=ep;return;}
+    }catch{}
+  }
+}
+function apiRoot(){return API.replace('/api','')}
+async function load(){
+  try{
+    const r=await fetch(API+'/clips?limit=5000');
+    if(r.ok){const d=await r.json();clips=Array.isArray(d)?d:[];serverOnline=true}else serverOnline=false;
+  }catch{serverOnline=false}
+  document.getElementById('statusDot').classList.toggle('offline',!serverOnline);
+}
+async function cCreate(c){try{await fetch(API+'/clips',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(c)})}catch{}}
+async function cSave(c){try{await fetch(API+'/clips/'+c.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(c)})}catch{}}
+async function cDel(id){try{await fetch(API+'/clips/'+id,{method:'DELETE'})}catch{}}
+function gid(){return'c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
+function sig(){return clips.length+':'+(clips[0]?.id||'')+':'+(clips[clips.length-1]?.id||'')}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function textOf(c){return c?.content||''}
+function firstSentence(s){
+  const clean=(s||'').replace(/\s+/g,' ').trim();
+  const m=clean.match(/^(.{1,160}?[.!?])(\s|$)/);
+  return m?m[1]:clean.slice(0,130);
+}
+function restPreview(s){
+  const clean=(s||'').replace(/\s+/g,' ').trim();
+  const first=firstSentence(clean);
+  return clean.slice(first.length).trim()||clean;
+}
+function formatTs(ts){
+  if(!ts)return'';
+  const d=new Date(ts); if(isNaN(d.getTime()))return'';
+  const diff=(Date.now()-d.getTime())/1000;
+  if(diff<60)return'now'; if(diff<3600)return Math.floor(diff/60)+'m';
+  if(diff<86400)return Math.floor(diff/3600)+'h'; return Math.floor(diff/86400)+'d';
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1200)}
+function filteredClips(list){
+  const q=search.toLowerCase();
+  if(!q)return list;
+  return list.filter(c=>textOf(c).toLowerCase().includes(q)||(c.tags||[]).some(t=>String(t).toLowerCase().includes(q)));
+}
+function saveCategories(){localStorage.setItem('pof_categories',JSON.stringify(categories))}
+function setTab(t){
+  tab=t;pg=0;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  render();
+}
+function addCategory(){
+  const name=prompt('Category name:'); if(!name||!name.trim())return;
+  const id=name.trim().toLowerCase().replace(/\s+/g,'_');
+  if(categories.find(c=>c.id===id)){toast('Exists');return}
+  categories.push({id,name:name.trim()});saveCategories();renderTabs();setTab(id);toast('Added');
+}
+function renderTabs(){
+  document.getElementById('customTabs').innerHTML=categories.map(c=>`<button class="tab ${tab===c.id?'active':''}" data-tab="${c.id}" onclick="setTab('${c.id}')" oncontextmenu="event.preventDefault();removeCategory('${c.id}')">${esc(c.name)}</button>`).join('');
+}
+function removeCategory(id){
+  if(!confirm('Remove this category?'))return;
+  categories=categories.filter(c=>c.id!==id);saveCategories();if(tab===id)tab='hotkeys';renderTabs();render();toast('Removed');
+}
+function render(){
+  renderPinDeck();
+  const area=document.getElementById('cardArea');
+  if(tab==='hotkeys'){renderQuick(area);return}
+  if(tab==='ai'){renderAI(area);return}
+  let list=tab==='history'?clips:clips.filter(c=>(c.categories||[]).includes(tab));
+  renderHistory(area,filteredClips(list));
+}
+function renderPinDeck(){
+  const pinned=clips.filter(c=>c.pinned).slice(0,PIN_SLOTS);
+  let h='';
+  for(let i=0;i<PIN_SLOTS;i++){
+    const c=pinned[i];
+    if(c){const idx=clips.indexOf(c);h+=`<button class="pin-slot" onclick="copyIdx(${idx})" oncontextmenu="event.preventDefault();togglePinClip(${idx})"><span class="pin-kicker">Pin ${i+1}</span><span class="pin-text">${esc(firstSentence(textOf(c)))}</span></button>`}
+    else h+=`<button class="pin-slot empty" onclick="toast('Pin a clip from Edit')" title="Pinned clips stay protected"><span class="pin-kicker">Pin ${i+1}</span><span class="pin-text">Empty</span></button>`;
+  }
+  document.getElementById('pinDeck').innerHTML=h;
+}
+function renderQuick(area){
+  const slotMap=new Map(clips.filter(c=>c.slot).map(c=>[Number(c.slot),c]));
+  let h='<div class="quick-list"><div class="section-hdr"><span>100 quick-save rows</span><span>pin shelf above</span></div>';
+  let filled=0;
+  for(let n=1;n<=SLOT_COUNT;n++){
+    const c=slotMap.get(n);
+    if(c){filled++;h+=buildClipRow(c,n,'quick')}
+    else h+=`<div class="quick-row"><button class="empty-save" onclick="openAddWithSlot(${n})"><span class="clip-meta">${n}</span><div class="clip-title">Empty</div><div class="clip-preview">Click to save</div></button></div>`;
+  }
+  h+='</div>';
+  area.innerHTML=h;area.scrollTop=0;
+  document.getElementById('pn').textContent=1;document.getElementById('pt').textContent=1;document.getElementById('cc').textContent=filled+'/'+SLOT_COUNT+' rows';
+}
+function renderHistory(area,list){
+  area.scrollTop=0;
+  const sorted=[...list].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  const totalPages=Math.ceil(sorted.length/PAGE_SIZE)||1;
+  pg=Math.min(Math.max(pg,0),totalPages-1);
+  const page=sorted.slice(pg*PAGE_SIZE,(pg+1)*PAGE_SIZE);
+  document.getElementById('pn').textContent=pg+1;document.getElementById('pt').textContent=totalPages;
+  const pinnedCount=sorted.filter(c=>c.pinned).length;
+  document.getElementById('cc').textContent=sorted.length+' clips · '+pinnedCount+' pinned';
+  if(!page.length){area.innerHTML='<div class="empty">No clips yet</div>';return}
+  let h='<div class="history-list"><div class="section-hdr"><span>Pinned first, newest</span><span>'+sorted.length+'</span></div>';
+  page.forEach(c=>h+=buildClipRow(c,c.slot||'', 'history'));
+  area.innerHTML=h+'</div>';
+}
+function buildClipRow(c,slot,mode){
+  const idx=clips.indexOf(c);
+  const tags=(c.tags||[]).slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+  const slotTag=slot?`<span class="rownum">${slot}</span>`:'';
+  const classes=(mode==='quick'?'quick-row':'history-row')+(c.pinned?' pinned':'')+(textOf(c)?' filled':'');
+  const meta=`<div class="clip-meta">${slotTag||'Clipboard'} ${formatTs(c.created_at||c.ts)}</div>`;
+  const title=`<div class="clip-title">${esc(firstSentence(textOf(c)))}</div>`;
+  const preview=`<div class="clip-preview">${esc(restPreview(textOf(c)))}</div>`;
+  if(mode==='quick'){
+    return `<div class="${classes}" ondblclick="copyIdx(${idx})">
+      <div class="clip-main">${meta}${title}${preview}</div>
+      <div class="row-actions">
+        <button class="copy-big" onclick="copyIdx(${idx})">COPY</button>
+        <button class="tiny-btn" onclick="openEdit(${idx})" title="Edit">E</button>
+        <button class="tiny-btn delete-btn" onclick="delClip(${idx})" title="Delete">x</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="${classes}" ondblclick="copyIdx(${idx})">
+    <button class="copy-big" onclick="copyIdx(${idx})">COPY</button>
+    <div class="clip-main">${meta}${title}${preview}<div class="history-side">${tags}</div></div>
+    <button class="tiny-btn${c.pinned?' on':''}" onclick="event.stopPropagation();togglePinClip(${idx})" title="${c.pinned?'Unpin':'Pin to top'}">★</button>
+    <button class="tiny-btn" onclick="openEdit(${idx})" title="Edit">E</button>
+    <button class="tiny-btn delete-btn" onclick="delClip(${idx})" title="Delete">x</button>
+  </div>`;
+}
+function renderAI(area){
+  area.innerHTML=`<div class="ai-panel">
+    <div class="ai-card"><h3>AI Clipboard Placeholder</h3><p>No API key is wired in this pass. This panel is kept ready for future AI cleanup, summarize, categorize, and prompt search actions.</p></div>
+    <div class="ai-card"><h3>Backup and Cloud Sync Notes</h3><p>Use EXPORT for daily JSON backups now. Later, the same clips/prompts JSON can sync through Syncthing, Cloudflare R2/D1, or a Worker endpoint.</p></div>
+  </div>`;
+  document.getElementById('pn').textContent=1;document.getElementById('pt').textContent=1;document.getElementById('cc').textContent=clips.length+' clips';
+}
+function copyIdx(i){
+  if(!clips[i])return;
+  navigator.clipboard.writeText(textOf(clips[i])).then(()=>toast('Copied')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=textOf(clips[i]);document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied');
+  });
+}
+function togglePinClip(i){
+  if(!clips[i])return;
+  clips[i].pinned=!clips[i].pinned;cSave(clips[i]);render();toast(clips[i].pinned?'Pinned':'Unpinned');
+}
+function delClip(i){
+  if(!clips[i])return;
+  if(clips[i].pinned&&!confirm('This clip is pinned. Delete anyway?'))return;
+  if(!clips[i].pinned&&!confirm('Delete?'))return;
+  const id=clips[i].id;clips.splice(i,1);cDel(id);render();toast('Deleted');
+}
+function clearSlot(i){if(!clips[i])return;clips[i].slot=null;cSave(clips[i]);render();toast('Row cleared')}
+function navPage(d){if(tab==='history'){pg=Math.max(0,pg+d);render()}}
+async function deduplicate(){
+  const seen=new Set(),dupes=[],keep=[];
+  for(const c of clips){
+    const key=textOf(c).trim();
+    if(!key){continue}
+    if(seen.has(key)&&!c.pinned&&!c.slot)dupes.push(c.id);else{seen.add(key);keep.push(c)}
+  }
+  if(!dupes.length){toast('No duplicates');return}
+  if(!confirm('Delete '+dupes.length+' duplicate unpinned history clips?'))return;
+  for(const id of dupes)await cDel(id);
+  clips=clips.filter(c=>!dupes.includes(c.id));render();toast('Removed '+dupes.length);
+}
+function addToCategory(idx){
+  if(!categories.length){toast('No categories');return}
+  const pick=prompt('Category: '+categories.map(c=>c.name).join(', '));if(!pick)return;
+  const cat=categories.find(c=>c.name.toLowerCase()===pick.trim().toLowerCase()||c.id===pick.trim().toLowerCase());
+  if(!cat){toast('Not found');return}
+  clips[idx].categories=clips[idx].categories||[];
+  if(!clips[idx].categories.includes(cat.id))clips[idx].categories.push(cat.id);
+  cSave(clips[idx]);render();toast('Added to '+cat.name);
+}
+function openAdd(slot=''){
+  document.getElementById('modalTitle').textContent='NEW CLIP';
+  document.getElementById('editId').value='';document.getElementById('fContent').value='';
+  document.getElementById('fTags').value='';document.getElementById('fSlot').value=slot;
+  document.getElementById('modalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('fContent').focus(),80);
+}
+function openAddWithSlot(slot){openAdd(slot)}
+function openEdit(i){
+  const c=clips[i]; if(!c)return;
+  document.getElementById('modalTitle').textContent='EDIT CLIP';
+  document.getElementById('editId').value=i;document.getElementById('fContent').value=textOf(c);
+  document.getElementById('fTags').value=(c.tags||[]).join(', ');document.getElementById('fSlot').value=c.slot||'';
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function saveClip(){
+  const ei=document.getElementById('editId').value;
+  const content=document.getElementById('fContent').value.trim();
+  if(!content){toast('Empty');return}
+  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  let slot=parseInt(document.getElementById('fSlot').value,10);
+  if(isNaN(slot)||slot<1||slot>SLOT_COUNT)slot=null;
+  if(slot)clips.forEach(c=>{if(Number(c.slot)===slot)c.slot=null});
+  if(ei!==''){
+    const i=parseInt(ei,10);clips[i].content=content;clips[i].tags=tags;clips[i].slot=slot;cSave(clips[i]);
+  }else{
+    const nc={id:gid(),content,tags,slot,pinned:false,ts:new Date().toISOString(),created_at:new Date().toISOString()};
+    clips.unshift(nc);cCreate(nc);
+  }
+  closeModal();render();toast(ei!==''?'Updated':'Saved');
+  try{fetch(API+'/slots/refresh')}catch{}   // push saved slot to the AHK cache
+}
+function exportData(){
+  const payload={exported_at:new Date().toISOString(),kind:'pof2828_clipboard_backup',clips};
+  const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pof2828_clipboard_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Exported');
+}
+function handleImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const raw=JSON.parse(ev.target.result);
+      const data=Array.isArray(raw)?raw:(Array.isArray(raw.clips)?raw.clips:[]);
+      if(!data.length)throw new Error('No clips found');
+      const ids=new Set(clips.map(c=>c.id));let n=0;
+      data.forEach(x=>{if(!x.id)x.id=gid();if(!ids.has(x.id)){x.ts=x.ts||new Date().toISOString();clips.push(x);cCreate(x);n++}});
+      render();toast(n+' imported');
+    }catch{toast('Bad import file')}
+  };
+  r.readAsText(f);e.target.value='';
+}
+async function toggleWindowPin(force){
+  windowPinned=typeof force==='boolean'?force:!windowPinned;
+  document.getElementById('btnPin').classList.toggle('on',windowPinned);
+  try{
+    await fetch(apiRoot()+'/window/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:WINDOW_TITLE,pinned:windowPinned})});
+    toast(windowPinned?'Always on top saved':'Top off');
+  }catch{toast('Pin saved when server returns')}
+}
+async function saveWindowPos(){
+  const pos={title:WINDOW_TITLE,x:screenX,y:screenY,w:outerWidth,h:outerHeight};
+  localStorage.setItem('pof_clipboard_pos',JSON.stringify(pos));
+  document.getElementById('btnPos').classList.add('on');
+  try{
+    await fetch(apiRoot()+'/window/position',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pos)});
+    toast('Place saved');
+  }catch{toast('Place saved locally')}
+}
+async function restoreWindowState(){
+  if(localStorage.getItem('pof_clipboard_pos'))document.getElementById('btnPos').classList.add('on');
+  try{
+    const r=await fetch(API+'/window-state');
+    if(r.ok){
+      const state=await r.json();
+      const pos=state.position; const pin=state.pin;
+      if(pos&&typeof pos.x==='number'){try{resizeTo(pos.w||outerWidth,pos.h||outerHeight);moveTo(pos.x,pos.y)}catch{}}
+      if(pin&&pin.pinned){windowPinned=true;document.getElementById('btnPin').classList.add('on');setTimeout(()=>toggleWindowPin(true),200)}
+    }
+  }catch{
+    try{
+      const pos=JSON.parse(localStorage.getItem('pof_clipboard_pos')||'null');
+      if(pos&&typeof pos.x==='number'){resizeTo(pos.w||outerWidth,pos.h||outerHeight);moveTo(pos.x,pos.y)}
+    }catch{}
+  }
+}
+const FILE_FOLDERS={documents:{label:'Documents'},videos:{label:'Videos'},music:{label:'Music'},pictures:{label:'Pictures'}};
+function formatFileSize(bytes){if(!bytes||bytes<0)return'';if(bytes<1024)return bytes+'B';if(bytes<1048576)return(bytes/1024).toFixed(1)+'K';if(bytes<1073741824)return(bytes/1048576).toFixed(1)+'M';return(bytes/1073741824).toFixed(1)+'G'}
+function toggleFiles(folder){
+  const panel=document.getElementById('filesPanel');
+  if(activeFolder===folder){closeFiles();return}
+  activeFolder=folder;document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('active',b.dataset.folder===folder));
+  document.getElementById('fpTitle').textContent=FILE_FOLDERS[folder].label+' - Syncthing-ready';
+  document.getElementById('fpList').innerHTML='<div class="fp-loading">Loading...</div>';panel.classList.add('open');loadFiles(folder);
+}
+function closeFiles(){activeFolder=null;document.getElementById('filesPanel').classList.remove('open');document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'))}
+async function loadFiles(folder){
+  const list=document.getElementById('fpList');
+  try{
+    const r=await fetch(API+'/files/'+folder);if(!r.ok)throw new Error('Folder endpoint not ready');
+    const files=await r.json();
+    if(!files.length){list.innerHTML='<div class="fp-empty">Folder empty. Later this can watch a Syncthing folder.</div>';return}
+    list.innerHTML=files.map(f=>`<div class="fp-item" onclick="openFile('${esc(String(f.path).replace(/\\/g,'\\\\').replace(/'/g,"\\'"))}')"><span class="fp-item-name" title="${esc(f.name)}">${esc(f.name)}</span><span class="fp-item-size">${formatFileSize(f.size)}</span></div>`).join('');
+  }catch(e){list.innerHTML='<div class="fp-empty">'+esc(e.message)+'<br>Start sync_server.py for file browsing.</div>'}
+}
+function openFile(path){
+  fetch(API+'/files/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})})
+    .then(r=>{if(r.ok)toast('Opened');else throw new Error()})
+    .catch(()=>navigator.clipboard.writeText(path).then(()=>toast('Path copied')));
+}
+document.addEventListener('keydown',e=>{
+  const modal=document.getElementById('modalBg').classList.contains('open');
+  const input=['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
+  if(e.key==='Escape'){if(modal)closeModal();return}
+  if(modal||input)return;
+  if(e.key==='ArrowLeft'){e.preventDefault();navPage(-1)}
+  if(e.key==='ArrowRight'){e.preventDefault();navPage(1)}
+  if(e.ctrlKey&&e.key.toLowerCase()==='f'){e.preventDefault();document.getElementById('searchInput').focus()}
+  if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='n'){e.preventDefault();openAdd()}
+});
+document.getElementById('searchInput').addEventListener('input',e=>{search=e.target.value;pg=0;render()});
+async function init(){await detectAPI();await restoreWindowState();await load();renderTabs();render()}
+init();
+let lastSig='';
+setInterval(async()=>{const old=lastSig;await load();const next=sig();if(old&&next!==old)render();lastSig=next},POLL_INTERVAL);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
+</script>
+</body>
+</html>

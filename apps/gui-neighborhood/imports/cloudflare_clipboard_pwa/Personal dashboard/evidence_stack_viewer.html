@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Evidence Stack Viewer</title>
+<style>
+:root{
+ --bg:#0B0C0F;--surface:#11131A;--surface2:#181B26;
+ --border:rgba(244,246,255,0.08);
+ --gold:#F2C94C;--gold-dim:rgba(242,201,76,0.10);
+ --text:#F4F6FF;--muted:#8A8F9E;--muted2:#5A5F6E;
+}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px;}
+.card{max-width:760px;margin:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;}
+.hd{padding:14px;border-bottom:1px solid var(--border);font-weight:700;color:var(--gold);}
+.body{padding:14px;}
+.layer{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:8px;cursor:pointer;}
+.layer:hover{border-color:var(--gold);}
+.meta{font-family:monospace;font-size:11px;color:var(--muted2);}
+#detail{margin-top:14px;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);display:none;}
+</style>
+</head>
+<body>
+
+<div class="card">
+<div class="hd">Evidence Stack</div>
+<div class="body">
+
+<div class="layer" onclick="show('math')">
+<b>Mathematics</b>
+<div class="meta">Kolmogorov complexity · information structure</div>
+</div>
+
+<div class="layer" onclick="show('physics')">
+<b>Physics</b>
+<div class="meta">observer effect · collapse models</div>
+</div>
+
+<div class="layer" onclick="show('consciousness')">
+<b>Consciousness</b>
+<div class="meta">mind‑matter interaction · global consciousness project</div>
+</div>
+
+<div class="layer" onclick="show('history')">
+<b>Historical Data</b>
+<div class="meta">event correlations · statistical anomalies</div>
+</div>
+
+<div class="layer" onclick="show('scripture')">
+<b>Scriptural Framework</b>
+<div class="meta">Logos structure · Trinity ontology</div>
+</div>
+
+<div id="detail"></div>
+
+</div>
+</div>
+
+<script>
+function show(type){
+let detail=document.getElementById("detail");
+detail.style.display="block";
+if(type=="math"){detail.innerHTML="<b>Mathematics</b><br>Information theory, algorithmic complexity, formal axiomatic structure.";}
+if(type=="physics"){detail.innerHTML="<b>Physics</b><br>Observer effect, collapse experiments, quantum interpretation debate.";}
+if(type=="consciousness"){detail.innerHTML="<b>Consciousness</b><br>Mind‑matter experiments, PEAR lab results, consciousness models.";}
+if(type=="history"){detail.innerHTML="<b>Historical Data</b><br>Macro‑pattern correlations across world events.";}
+if(type=="scripture"){detail.innerHTML="<b>Scriptural Framework</b><br>Logos concept, Trinity mapping, theological structure.";}
+}
+</script>
+
+</body>
+</html>

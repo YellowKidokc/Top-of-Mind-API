@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POF 2828 - Clipboard</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="icon" href="/clip-icon.svg">
+<link rel="apple-touch-icon" href="/clip-icon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
+*{box-sizing:border-box}
+:root{
+  --bg:#0a0c10;--pane:#10131a;--card:#151923;--card2:#1b202c;--line:#252b3a;
+  --text:#d8dbe5;--muted:#858a9b;--dim:#555b6f;--gold:#e8a912;--cyan:#4ac4d4;
+  --green:#31d08f;--red:#dc5a5a;--purple:#8d7ce2;--font:'DM Mono','Cascadia Mono','Menlo',monospace;
+}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:11px;
+  display:flex;flex-direction:column;overflow:hidden;max-width:460px;margin-inline:auto;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#30364a;border-radius:4px}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;gap:7px;padding:6px;background:var(--pane);border-bottom:1px solid var(--line);flex-shrink:0}
+.brand{color:var(--gold);font-size:10px;font-weight:500;letter-spacing:1.4px;white-space:nowrap}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);flex-shrink:0}
+.status-dot.offline{background:var(--red);box-shadow:0 0 7px var(--red)}
+.search-wrap{position:relative;flex:1}
+.search-input{width:100%;background:#080a0e;border:1px solid var(--line);border-radius:6px;color:var(--text);outline:none;padding:7px 8px 7px 24px;font-size:11px}
+.search-input:focus{border-color:var(--gold)}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--dim)}
+
+/* ── Tabs ── */
+.tab-bar{display:flex;align-items:stretch;background:var(--pane);border-bottom:1px solid var(--line);flex-shrink:0}
+.tab{flex:1;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:7px 4px;text-transform:uppercase;letter-spacing:.6px;font-size:9px}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* ── Pin deck (top strip) ── */
+.pin-deck{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:5px 6px;background:#0d1016;border-bottom:1px solid var(--line);flex-shrink:0}
+.pin-slot{min-width:0;background:var(--card);border:1px solid rgba(232,169,18,.25);border-radius:6px;color:var(--gold);padding:5px 4px;text-align:left}
+.pin-slot.empty{border-color:var(--line);color:var(--dim)}
+.pin-kicker{display:block;font-size:7px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.pin-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:9px;line-height:1.25}
+
+/* ── Card scroll area ── */
+.card-scroll{flex:1;overflow-y:auto;padding:5px 6px;scroll-behavior:auto}
+
+/* ── HOTKEYS 2-column slot grid ── */
+.slot-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.slot-card{background:var(--card);border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;gap:0;overflow:hidden;min-height:99px}
+.slot-card.filled{border-color:rgba(74,196,212,.22)}
+.slot-card.pinned{border-left:3px solid var(--gold)}
+
+/* slot inner: number left | content right */
+.slot-inner{display:flex;flex:1;min-height:0}
+.slot-num{width:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);border-right:1px solid var(--line);padding:6px 0}
+.slot-content{flex:1;padding:6px 7px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden}
+.slot-title{font-size:13px;font-weight:500;color:#f0f2f8;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.slot-preview{font-size:11px;color:var(--muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* slot action row */
+.slot-actions{display:flex;border-top:1px solid var(--line);flex-shrink:0}
+.slot-actions button{flex:1;background:transparent;border:0;border-right:1px solid var(--line);color:var(--muted);padding:5px 2px;font-size:8px;letter-spacing:.4px;text-transform:uppercase}
+.slot-actions button:last-child{border-right:0}
+.slot-actions button:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.slot-actions .act-copy{color:var(--cyan)}
+.slot-actions .act-copy:hover{background:rgba(74,196,212,.1)}
+.slot-actions .act-del{color:var(--red)}
+.slot-actions .act-del:hover{background:rgba(220,90,90,.1)}
+
+/* empty slot */
+.slot-card.empty .slot-title{color:var(--dim)}
+.slot-card.empty .slot-preview{color:var(--dim)}
+.slot-empty-save{flex:1;background:transparent;border:0;color:var(--muted);font-size:9px;padding:6px 7px;text-align:left;width:100%}
+.slot-empty-save:hover{background:rgba(255,255,255,.03);color:var(--text)}
+
+/* ── History list (unchanged) ── */
+.history-list{display:flex;flex-direction:column;gap:5px}
+.history-row{background:var(--card);border:1px solid var(--line);border-radius:7px;display:grid;grid-template-columns:110px 1fr 35px 35px 44px;gap:5px;align-items:stretch;padding:6px;min-height:74px}
+.history-row.pinned{border-left:4px solid var(--gold)}
+.copy-big{border:1px solid rgba(49,208,143,.35);background:rgba(49,208,143,.12);color:var(--green);border-radius:6px;font-size:20px;font-weight:500;letter-spacing:.7px;min-height:60px}
+.copy-big:hover{background:rgba(49,208,143,.2)}
+.clip-main{min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.clip-title{font-size:18px;line-height:1.1;color:#f0f2f8;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.rownum{color:var(--gold);font-weight:500;font-size:13px;margin-right:6px}
+.clip-preview{font-size:10px;line-height:1.28;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.clip-meta{font-size:8px;color:var(--gold);letter-spacing:.7px;text-transform:uppercase;margin-bottom:2px}
+.tiny-btn{border:1px solid var(--line);background:#0a0d12;color:var(--muted);border-radius:6px;padding:0;min-height:60px;font-size:16px}
+.tiny-btn:hover{border-color:var(--gold);color:var(--gold)}
+.tiny-btn.on{color:var(--gold);background:rgba(232,169,18,.12);border-color:rgba(232,169,18,.3)}
+.history-side{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px}
+.tag{border:1px solid rgba(74,196,212,.2);background:rgba(74,196,212,.08);color:var(--cyan);border-radius:4px;padding:1px 5px;font-size:7px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ── Bottom nav bar ── */
+.nav-bar{display:flex;align-items:center;gap:4px;padding:5px 6px;background:var(--pane);border-top:1px solid var(--line);flex-shrink:0}
+.nbtn{background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);min-height:30px;padding:5px 10px;font-size:14px}
+.nbtn:hover{border-color:var(--gold);color:var(--gold)}
+.nbtn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(74,196,212,.08)}
+.nav-spacer{flex:1}
+.synced-badge{display:flex;align-items:center;gap:5px;color:var(--green);font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:0 4px}
+.synced-badge.offline{color:var(--dim)}
+.synced-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ── Files panel ── */
+.files-bar{display:flex;align-items:center;gap:4px;padding:5px 6px;background:var(--pane);border-top:1px solid var(--line);flex-shrink:0}
+.fbtn{flex:1;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);min-height:30px;padding:5px 8px}
+.fbtn:hover{border-color:var(--gold);color:var(--gold)}
+.fbtn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(74,196,212,.08)}
+.files-panel{display:none;background:var(--bg);border-top:1px solid var(--line);max-height:210px;overflow-y:auto;flex-shrink:0}
+.files-panel.open{display:block}
+.fp-header{display:flex;align-items:center;justify-content:space-between;padding:7px 8px;background:var(--pane);border-bottom:1px solid var(--line);position:sticky;top:0}
+.fp-title{color:var(--cyan);letter-spacing:1px;text-transform:uppercase;font-size:9px}
+.fp-close{background:transparent;border:0;color:var(--muted);font-size:14px}
+.fp-list{padding:5px}
+.fp-item{display:flex;align-items:center;gap:8px;padding:6px;border-radius:5px;color:var(--text)}
+.fp-item:hover{background:var(--card2)}
+.fp-item-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-item-size,.fp-empty,.fp-loading{color:var(--muted);font-size:9px}.fp-empty,.fp-loading{text-align:center;padding:16px 8px}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center;padding:8px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:8px;width:100%;max-width:390px;max-height:88vh;overflow:auto;padding:12px}
+.modal h2{color:var(--gold);font-size:11px;letter-spacing:1.5px;margin:0 0 8px}
+.modal label{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.7px;margin:7px 0 3px}
+.modal input,.modal textarea{width:100%;background:#090b10;border:1px solid var(--line);border-radius:6px;color:var(--text);outline:none;padding:7px}
+.modal textarea{min-height:112px;resize:vertical}
+.mrow{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+.mbtn{border:1px solid var(--line);border-radius:6px;padding:7px 12px;background:transparent;color:var(--muted)}
+.mbtn.save{background:var(--green);border-color:var(--green);color:#06100c}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(35px);background:var(--gold);color:#050505;padding:5px 13px;border-radius:5px;font-weight:500;z-index:200;transition:transform .18s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;color:var(--dim);padding:26px 8px}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:8px;margin:2px 0 5px}
+.ai-panel{display:flex;flex-direction:column;gap:6px}
+.ai-card{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:9px}
+.ai-card h3{margin:0 0 4px;color:var(--purple);font-size:11px}.ai-card p{margin:0;color:var(--muted);line-height:1.45}
+@media (max-width:390px){
+  .slot-grid{grid-template-columns:1fr}
+  .history-row{grid-template-columns:90px 1fr 31px 31px 38px}
+  .copy-big{font-size:16px}.clip-title{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="search-wrap"><span class="search-icon">?</span><input class="search-input" id="searchInput" placeholder="Search clips..." autocomplete="off"></div>
+  <span class="status-dot" id="statusDot"></span><span class="brand">POF 2828</span>
+</div>
+<div class="tab-bar">
+  <button class="tab active" data-tab="hotkeys" onclick="setTab('hotkeys')">Hotkeys</button>
+  <button class="tab" data-tab="history" onclick="setTab('history')">History</button>
+  <button class="tab" data-tab="ai" onclick="setTab('ai')">AI</button>
+  <button class="tab" data-tab="pinned" onclick="setTab('pinned')">Pinned</button>
+</div>
+<div class="pin-deck" id="pinDeck"></div>
+<div class="card-scroll" id="cardArea"></div>
+<div class="files-bar" id="filesBar">
+  <button class="fbtn" data-folder="documents" onclick="toggleFiles('documents')" title="Documents">&#128196;</button>
+  <button class="fbtn" data-folder="videos" onclick="toggleFiles('videos')" title="Videos">&#127909;</button>
+  <button class="fbtn" data-folder="music" onclick="toggleFiles('music')" title="Music">&#127925;</button>
+  <button class="fbtn" data-folder="pictures" onclick="toggleFiles('pictures')" title="Pictures">&#128444;</button>
+</div>
+<div class="files-panel" id="filesPanel">
+  <div class="fp-header"><span class="fp-title" id="fpTitle">Documents</span><button class="fp-close" onclick="closeFiles()">x</button></div>
+  <div class="fp-list" id="fpList"></div>
+</div>
+<div class="nav-bar">
+  <button class="nbtn" id="btnPin" onclick="toggleWindowPin()" title="Stay on top">TOP</button>
+  <button class="nbtn" onclick="deduplicate()" title="Remove duplicate clips">DEDUP</button>
+  <button class="nbtn" onclick="exportData()" title="Export JSON">EXP</button>
+  <button class="nbtn" onclick="document.getElementById('fileInput').click()" title="Import JSON">IMP</button>
+  <button class="nbtn" onclick="openAdd()" style="color:var(--gold);border-color:rgba(232,169,18,.4)">+ NEW</button>
+  <span class="nav-spacer"></span>
+  <span class="synced-badge" id="syncedBadge"><span class="synced-dot"></span>Synced</span>
+</div>
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2 id="modalTitle">NEW CLIP</h2>
+    <input type="hidden" id="editId">
+    <label>Content</label><textarea id="fContent" placeholder="Paste or type..."></textarea>
+    <label>Tags (comma separated)</label><input id="fTags" placeholder="prompt, code, url">
+    <label>Quick-save slot (1-75)</label><input id="fSlot" type="number" min="1" max="75" placeholder="e.g. 5">
+    <div class="mrow"><button class="mbtn" onclick="closeModal()">Cancel</button><button class="mbtn save" onclick="saveClip()">Save</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)">
+<script>
+const API_ENDPOINTS=[
+  (location.protocol==='http:'||location.protocol==='https:')?location.origin+'/api':'http://localhost:3456/api',
+  'http://localhost:3456/api',
+  'http://127.0.0.1:3456/api',
+  'http://192.168.1.177:3456/api',
+  'http://clipboard.dlowehomelab.com/api'
+];
+let API=API_ENDPOINTS[0];
+const SLOT_COUNT=75;
+const PIN_SLOTS=5;
+const PAGE_SIZE=100;
+const WINDOW_TITLE='POF 2828 - Clipboard';
+const POLL_INTERVAL=2000;
+let clips=[],pg=0,tab='hotkeys',search='',windowPinned=false,serverOnline=false,activeFolder=null;
+
+async function detectAPI(){
+  for(const ep of API_ENDPOINTS){
+    try{
+      const r=await fetch(ep+'/clips?limit=1',{signal:AbortSignal.timeout(1200)});
+      if(r.ok){API=ep;return;}
+    }catch{}
+  }
+}
+function apiRoot(){return API.replace('/api','')}
+async function load(){
+  try{
+    const r=await fetch(API+'/clips?limit=5000');
+    if(r.ok){const d=await r.json();clips=Array.isArray(d)?d:[];serverOnline=true}else serverOnline=false;
+  }catch{serverOnline=false}
+  document.getElementById('statusDot').classList.toggle('offline',!serverOnline);
+  const badge=document.getElementById('syncedBadge');
+  badge.classList.toggle('offline',!serverOnline);
+  badge.innerHTML='<span class="synced-dot"></span>'+(serverOnline?'Synced':'Offline');
+}
+async function cCreate(c){try{await fetch(API+'/clips',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(c)})}catch{}}
+async function cSave(c){try{await fetch(API+'/clips/'+c.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(c)})}catch{}}
+async function cDel(id){try{await fetch(API+'/clips/'+id,{method:'DELETE'})}catch{}}
+function gid(){return'c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
+function sig(){return clips.length+':'+(clips[0]?.id||'')+':'+(clips[clips.length-1]?.id||'')}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function textOf(c){return c?.content||''}
+function firstLine(s){return(s||'').replace(/\s+/g,' ').trim().slice(0,80)}
+function restPreview(s){
+  const clean=(s||'').replace(/\s+/g,' ').trim();
+  return clean.slice(firstLine(s).length).trim().slice(0,120)||clean.slice(0,120);
+}
+function formatTs(ts){
+  if(!ts)return'';const d=new Date(ts);if(isNaN(d.getTime()))return'';
+  const diff=(Date.now()-d.getTime())/1000;
+  if(diff<60)return'now';if(diff<3600)return Math.floor(diff/60)+'m';
+  if(diff<86400)return Math.floor(diff/3600)+'h';return Math.floor(diff/86400)+'d';
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1200)}
+function filteredClips(list){
+  const q=search.toLowerCase();
+  if(!q)return list;
+  return list.filter(c=>textOf(c).toLowerCase().includes(q)||(c.tags||[]).some(t=>String(t).toLowerCase().includes(q)));
+}
+function setTab(t){
+  tab=t;pg=0;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  render();
+}
+function render(){
+  renderPinDeck();
+  const area=document.getElementById('cardArea');
+  if(tab==='hotkeys'){renderHotkeys(area);return}
+  if(tab==='ai'){renderAI(area);return}
+  if(tab==='pinned'){
+    renderHistory(area,filteredClips(clips.filter(c=>c.pinned)));return
+  }
+  renderHistory(area,filteredClips(clips));
+}
+function renderPinDeck(){
+  const pinned=clips.filter(c=>c.pinned).slice(0,PIN_SLOTS);
+  let h='';
+  for(let i=0;i<PIN_SLOTS;i++){
+    const c=pinned[i];
+    if(c){const idx=clips.indexOf(c);h+=`<button class="pin-slot" onclick="copyIdx(${idx})" oncontextmenu="event.preventDefault();togglePinClip(${idx})"><span class="pin-kicker">Pin ${i+1}</span><span class="pin-text">${esc(firstLine(textOf(c)))}</span></button>`}
+    else h+=`<button class="pin-slot empty" onclick="toast('Pin a clip from Edit')"><span class="pin-kicker">Pin ${i+1}</span><span class="pin-text">Empty</span></button>`;
+  }
+  document.getElementById('pinDeck').innerHTML=h;
+}
+
+/* ── HOTKEYS: 2-col slot grid ── */
+function renderHotkeys(area){
+  const slotMap=new Map(clips.filter(c=>c.slot).map(c=>[Number(c.slot),c]));
+  let filled=0;
+  let h='<div class="section-hdr"><span>Quick-save slots</span><span id="slotCount"></span></div><div class="slot-grid">';
+  for(let n=1;n<=SLOT_COUNT;n++){
+    const c=slotMap.get(n);
+    if(c){filled++;h+=buildSlotCard(c,n,clips.indexOf(c))}
+    else h+=buildEmptySlot(n);
+  }
+  h+='</div>';
+  area.innerHTML=h;area.scrollTop=0;
+  const el=document.getElementById('slotCount');
+  if(el)el.textContent=filled+'/'+SLOT_COUNT+' filled';
+}
+function buildSlotCard(c,n,idx){
+  const pinCls=c.pinned?' pinned':'';
+  return `<div class="slot-card filled${pinCls}">
+    <div class="slot-inner">
+      <div class="slot-num">${n}</div>
+      <div class="slot-content">
+        <div class="slot-title">${esc(firstLine(textOf(c)))}</div>
+        <div class="slot-preview">${esc(restPreview(textOf(c)))}</div>
+      </div>
+    </div>
+    <div class="slot-actions">
+      <button class="act-copy" onclick="copyIdx(${idx})">Copy</button>
+      <button onclick="saveCurrentClipboard(${n})">Save</button>
+      <button onclick="openEdit(${idx})">Edit</button>
+      <button class="act-del" onclick="delClip(${idx})">Del</button>
+    </div>
+  </div>`;
+}
+function buildEmptySlot(n){
+  return `<div class="slot-card empty">
+    <div class="slot-inner">
+      <div class="slot-num">${n}</div>
+      <div class="slot-content">
+        <div class="slot-title">Empty slot</div>
+        <div class="slot-preview">Save clipboard here</div>
+      </div>
+    </div>
+    <button class="slot-empty-save" onclick="openAddWithSlot(${n})">+ SAVE</button>
+  </div>`;
+}
+
+/* ── History list ── */
+function renderHistory(area,list){
+  area.scrollTop=0;
+  const sorted=[...list].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  const totalPages=Math.ceil(sorted.length/PAGE_SIZE)||1;
+  pg=Math.min(Math.max(pg,0),totalPages-1);
+  const page=sorted.slice(pg*PAGE_SIZE,(pg+1)*PAGE_SIZE);
+  const pinnedCount=sorted.filter(c=>c.pinned).length;
+  if(!page.length){area.innerHTML='<div class="empty">No clips yet</div>';return}
+  let h='<div class="history-list"><div class="section-hdr"><span>Pinned first · '+sorted.length+' clips</span><span>'+pinnedCount+' pinned</span></div>';
+  page.forEach(c=>h+=buildHistoryRow(c,clips.indexOf(c)));
+  area.innerHTML=h+'</div>';
+}
+function buildHistoryRow(c,idx){
+  const tags=(c.tags||[]).slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+  const meta=`<div class="clip-meta">${c.slot?'<span class="rownum">'+c.slot+'</span>':''} ${formatTs(c.created_at||c.ts)}</div>`;
+  return `<div class="history-row${c.pinned?' pinned':''}" ondblclick="copyIdx(${idx})">
+    <button class="copy-big" onclick="copyIdx(${idx})">COPY</button>
+    <div class="clip-main">${meta}<div class="clip-title">${esc(firstLine(textOf(c)))}</div><div class="clip-preview">${esc(restPreview(textOf(c)))}</div><div class="history-side">${tags}</div></div>
+    <button class="tiny-btn${c.pinned?' on':''}" onclick="event.stopPropagation();togglePinClip(${idx})" title="${c.pinned?'Unpin':'Pin'}">&#9733;</button>
+    <button class="tiny-btn" onclick="openEdit(${idx})" title="Edit">E</button>
+    <button class="tiny-btn" onclick="delClip(${idx})" style="color:var(--red)" title="Delete">x</button>
+  </div>`;
+}
+function renderAI(area){
+  area.innerHTML=`<div class="ai-panel">
+    <div class="ai-card"><h3>AI Clipboard</h3><p>No API key wired in this pass. This panel is ready for future AI cleanup, summarize, categorize, and prompt search actions.</p></div>
+    <div class="ai-card"><h3>Backup &amp; Sync</h3><p>Use EXP in the nav bar for daily JSON backups. Syncthing, Cloudflare R2/D1, or a Worker endpoint can sync the same clips JSON.</p></div>
+  </div>`;
+}
+
+/* ── Clipboard ops ── */
+function copyIdx(i){
+  if(!clips[i])return;
+  navigator.clipboard.writeText(textOf(clips[i])).then(()=>toast('Copied')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=textOf(clips[i]);document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied');
+  });
+}
+function togglePinClip(i){
+  if(!clips[i])return;clips[i].pinned=!clips[i].pinned;cSave(clips[i]);render();toast(clips[i].pinned?'Pinned':'Unpinned');
+}
+function delClip(i){
+  if(!clips[i])return;
+  if(clips[i].pinned&&!confirm('This clip is pinned. Delete anyway?'))return;
+  if(!clips[i].pinned&&!confirm('Delete?'))return;
+  const id=clips[i].id;clips.splice(i,1);cDel(id);render();toast('Deleted');
+}
+async function saveCurrentClipboard(slot){
+  let text='';
+  try{text=await navigator.clipboard.readText()}catch{toast('Allow clipboard access');return}
+  if(!text.trim()){toast('Clipboard empty');return}
+  clips.forEach(c=>{if(Number(c.slot)===slot)c.slot=null});
+  const existing=clips.find((c,i)=>Number(c.slot)===slot);
+  if(existing){existing.content=text;existing.slot=slot;cSave(existing)}
+  else{const nc={id:gid(),content:text,tags:[],slot,pinned:false,ts:new Date().toISOString(),created_at:new Date().toISOString()};clips.unshift(nc);cCreate(nc)}
+  render();toast('Saved to slot '+slot);
+  try{fetch(API+'/slots/refresh')}catch{}
+}
+async function deduplicate(){
+  const seen=new Set(),dupes=[],keep=[];
+  for(const c of clips){const key=textOf(c).trim();if(!key)continue;if(seen.has(key)&&!c.pinned&&!c.slot)dupes.push(c.id);else{seen.add(key);keep.push(c)}}
+  if(!dupes.length){toast('No duplicates');return}
+  if(!confirm('Delete '+dupes.length+' duplicate unpinned clips?'))return;
+  for(const id of dupes)await cDel(id);
+  clips=clips.filter(c=>!dupes.includes(c.id));render();toast('Removed '+dupes.length);
+}
+function openAdd(slot=''){
+  document.getElementById('modalTitle').textContent='NEW CLIP';
+  document.getElementById('editId').value='';document.getElementById('fContent').value='';
+  document.getElementById('fTags').value='';document.getElementById('fSlot').value=slot;
+  document.getElementById('modalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('fContent').focus(),80);
+}
+function openAddWithSlot(slot){openAdd(slot)}
+function openEdit(i){
+  const c=clips[i];if(!c)return;
+  document.getElementById('modalTitle').textContent='EDIT CLIP';
+  document.getElementById('editId').value=i;document.getElementById('fContent').value=textOf(c);
+  document.getElementById('fTags').value=(c.tags||[]).join(', ');document.getElementById('fSlot').value=c.slot||'';
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function saveClip(){
+  const ei=document.getElementById('editId').value;
+  const content=document.getElementById('fContent').value.trim();
+  if(!content){toast('Empty');return}
+  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  let slot=parseInt(document.getElementById('fSlot').value,10);
+  if(isNaN(slot)||slot<1||slot>SLOT_COUNT)slot=null;
+  if(slot)clips.forEach(c=>{if(Number(c.slot)===slot)c.slot=null});
+  if(ei!==''){const i=parseInt(ei,10);clips[i].content=content;clips[i].tags=tags;clips[i].slot=slot;cSave(clips[i])}
+  else{const nc={id:gid(),content,tags,slot,pinned:false,ts:new Date().toISOString(),created_at:new Date().toISOString()};clips.unshift(nc);cCreate(nc)}
+  closeModal();render();toast(ei!==''?'Updated':'Saved');
+  try{fetch(API+'/slots/refresh')}catch{}
+}
+function exportData(){
+  const payload={exported_at:new Date().toISOString(),kind:'pof2828_clipboard_backup',clips};
+  const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pof2828_clipboard_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Exported');
+}
+function handleImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const raw=JSON.parse(ev.target.result);
+      const data=Array.isArray(raw)?raw:(Array.isArray(raw.clips)?raw.clips:[]);
+      if(!data.length)throw new Error('No clips found');
+      const ids=new Set(clips.map(c=>c.id));let n=0;
+      data.forEach(x=>{if(!x.id)x.id=gid();if(!ids.has(x.id)){x.ts=x.ts||new Date().toISOString();clips.push(x);cCreate(x);n++}});
+      render();toast(n+' imported');
+    }catch{toast('Bad import file')}
+  };
+  r.readAsText(f);e.target.value='';
+}
+async function toggleWindowPin(force){
+  windowPinned=typeof force==='boolean'?force:!windowPinned;
+  document.getElementById('btnPin').classList.toggle('on',windowPinned);
+  try{
+    await fetch(apiRoot()+'/window/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:WINDOW_TITLE,pinned:windowPinned})});
+    toast(windowPinned?'Always on top':'Top off');
+  }catch{toast('Pin saved when server returns')}
+}
+const FILE_FOLDERS={documents:{label:'Documents'},videos:{label:'Videos'},music:{label:'Music'},pictures:{label:'Pictures'}};
+function formatFileSize(bytes){if(!bytes||bytes<0)return'';if(bytes<1024)return bytes+'B';if(bytes<1048576)return(bytes/1024).toFixed(1)+'K';if(bytes<1073741824)return(bytes/1048576).toFixed(1)+'M';return(bytes/1073741824).toFixed(1)+'G'}
+function toggleFiles(folder){
+  const panel=document.getElementById('filesPanel');
+  if(activeFolder===folder){closeFiles();return}
+  activeFolder=folder;document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('active',b.dataset.folder===folder));
+  document.getElementById('fpTitle').textContent=FILE_FOLDERS[folder].label;
+  document.getElementById('fpList').innerHTML='<div class="fp-loading">Loading...</div>';panel.classList.add('open');loadFiles(folder);
+}
+function closeFiles(){activeFolder=null;document.getElementById('filesPanel').classList.remove('open');document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'))}
+async function loadFiles(folder){
+  const list=document.getElementById('fpList');
+  try{
+    const r=await fetch(API+'/files/'+folder);if(!r.ok)throw new Error('Folder endpoint not ready');
+    const files=await r.json();
+    if(!files.length){list.innerHTML='<div class="fp-empty">Folder empty.</div>';return}
+    list.innerHTML=files.map(f=>`<div class="fp-item" onclick="openFile('${esc(String(f.path).replace(/\\/g,'\\\\').replace(/'/g,"\\'"))}')"><span class="fp-item-name" title="${esc(f.name)}">${esc(f.name)}</span><span class="fp-item-size">${formatFileSize(f.size)}</span></div>`).join('');
+  }catch(e){list.innerHTML='<div class="fp-empty">'+esc(e.message)+'</div>'}
+}
+function openFile(path){
+  fetch(API+'/files/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})})
+    .then(r=>{if(r.ok)toast('Opened');else throw new Error()})
+    .catch(()=>navigator.clipboard.writeText(path).then(()=>toast('Path copied')));
+}
+document.addEventListener('keydown',e=>{
+  const modal=document.getElementById('modalBg').classList.contains('open');
+  const input=['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
+  if(e.key==='Escape'){if(modal)closeModal();return}
+  if(modal||input)return;
+  if(e.ctrlKey&&e.key.toLowerCase()==='f'){e.preventDefault();document.getElementById('searchInput').focus()}
+  if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='n'){e.preventDefault();openAdd()}
+});
+document.getElementById('searchInput').addEventListener('input',e=>{search=e.target.value;pg=0;render()});
+async function init(){await detectAPI();await load();render()}
+init();
+let lastSig='';
+setInterval(async()=>{const old=lastSig;await load();const next=sig();if(old&&next!==old)render();lastSig=next},POLL_INTERVAL);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
+</script>
+</body>
+</html>

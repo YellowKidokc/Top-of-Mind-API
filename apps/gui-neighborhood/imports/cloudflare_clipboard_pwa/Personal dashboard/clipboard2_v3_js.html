@@ -1,0 +1,191 @@
+
+<script>
+const API='http://localhost:3456/api';
+const PAGE_SIZE=30;
+let clips=[],selIdx=-1,page=0;
+let isPinned=false, layoutMode='hotkeys';
+let lastRenderSignature='';
+
+async function load(){try{const r=await fetch(API+'/clips');if(r.ok){const d=await r.json();if(Array.isArray(d))clips=d}}catch{}}
+async function createClipOnServer(c){try{await fetch(API+'/clips',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(c)})}catch{}}
+async function saveClipToServer(c){try{await fetch(API+'/clips/'+c.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(c)})}catch{}}
+async function deleteClipOnServer(id){try{await fetch(API+'/clips/'+id,{method:'DELETE'})}catch{}}
+function gid(){return 'c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
+function currentSignature(){return clips.map(c=>c.id+':'+(c.content||'').slice(0,20)).join('|')}
+
+// PIN / POSITION
+async function togglePin(){
+  isPinned=!isPinned;
+  document.getElementById('btnPin').classList.toggle('active',isPinned);
+  try{await fetch(API.replace('/api','')+'/window/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:isPinned})}); toast(isPinned?'Pinned':'Unpinned')}catch{toast('Pin N/A')}
+}
+function saveWindowPos(){
+  localStorage.setItem('pof2828_pos',JSON.stringify({x:window.screenX,y:window.screenY,w:window.outerWidth,h:window.outerHeight}));
+  toast('Pos saved');
+}
+function restoreWindowPos(){try{const p=JSON.parse(localStorage.getItem('pof2828_pos'));if(p){window.resizeTo(p.w,p.h);window.moveTo(p.x,p.y)}}catch{}}
+
+// RENDER
+function renderAll(){
+  if(layoutMode==='hotkeys') renderHotkeys();
+  else renderHistory();
+  document.getElementById('totalCount').textContent=clips.length;
+}
+
+function renderHotkeys(){
+  const el=document.getElementById('hotkeyView');
+  let html='';
+  for(let i=1;i<=20;i++){
+    const clip=clips.find(c=>c.slot===i);
+    const content=clip?esc(clip.content).slice(0,60):'—';
+    const cls=clip?'filled':'empty';
+    html+=`<div class="hk-slot ${cls}" onclick="${clip?`copyIdx(${clips.indexOf(clip)})`:`assignSlot(${i})`}">
+      <span class="num">${i}</span>
+      <span class="slot-content">${content}</span>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+function renderHistory(){
+  const body=document.getElementById('histBody');
+  const start=page*PAGE_SIZE;
+  const pageClips=clips.slice(start,start+PAGE_SIZE);
+  let html='';
+  pageClips.forEach((c,i)=>{
+    const idx=start+i;
+    const sel=idx===selIdx?'selected':'';
+    const pinCls=c.pinned?'pinned':'';
+    const tagCls=(c.tags&&c.tags.length)?'tagged':'';
+    const lines=c.content.split('\n');
+    const l1=esc((lines[0]||'').slice(0,80));
+    const l2=esc((lines[1]||'').slice(0,80));
+    const l3=esc((lines[2]||'').slice(0,80));
+    html+=`<tr class="hist-row ${sel}" onclick="selectClip(${idx})">
+      <td class="hist-pin ${pinCls}" onclick="event.stopPropagation();togglePinClip(${idx})">${c.pinned?'★':'☆'}</td>
+      <td class="hist-content">
+        <div class="line1">${l1}</div>
+        ${l2?`<div class="line2">${l2}</div>`:''}
+        ${l3?`<div class="line3">${l3}</div>`:''}
+      </td>
+      <td class="hist-tag ${tagCls}" onclick="event.stopPropagation();quickTag(${idx})">${(c.tags&&c.tags.length)?'◆':'◇'}</td>
+      <td class="hist-time">${timeAgo(c.ts)}</td>
+    </tr>`;
+  });
+  body.innerHTML=html;
+}
+
+// ACTIONS
+function selectClip(idx){selIdx=idx;renderAll()}
+function copyIdx(idx){
+  const c=clips[idx];if(!c)return;
+  navigator.clipboard.writeText(c.content).then(()=>toast('Copied')).catch(()=>toast('Copy failed'));
+}
+function togglePinClip(idx){
+  clips[idx].pinned=!clips[idx].pinned;
+  if(clips[idx].pinned){const c=clips.splice(idx,1)[0];clips.unshift(c);selIdx=0}
+  saveClipToServer(clips[idx]||clips[0]);renderAll();
+}
+function quickTag(idx){
+  const tag=prompt('Tag:');if(!tag)return;
+  if(!clips[idx].tags)clips[idx].tags=[];
+  clips[idx].tags.push(tag.trim());
+  saveClipToServer(clips[idx]);renderAll();toast('Tagged');
+}
+function assignSlot(slot){
+  if(selIdx<0){toast('Select a clip first');return}
+  clips.forEach(c=>{if(c.slot===slot)c.slot=null});
+  clips[selIdx].slot=slot;
+  saveClipToServer(clips[selIdx]);renderAll();toast('Slot '+slot);
+}
+function copySlot(s){const c=clips.find(x=>x.slot===s);if(c)navigator.clipboard.writeText(c.content).then(()=>toast('Slot '+s))}
+function moveSelUp(){if(selIdx<=0)return;[clips[selIdx-1],clips[selIdx]]=[clips[selIdx],clips[selIdx-1]];selIdx--;renderAll()}
+function moveSelDown(){if(selIdx<0||selIdx>=clips.length-1)return;[clips[selIdx],clips[selIdx+1]]=[clips[selIdx+1],clips[selIdx]];selIdx++;renderAll()}
+function stickyTop(){if(selIdx<=0)return;const c=clips.splice(selIdx,1)[0];clips.unshift(c);selIdx=0;renderAll()}
+function stickyBottom(){if(selIdx<0)return;const c=clips.splice(selIdx,1)[0];clips.push(c);selIdx=clips.length-1;renderAll()}
+function navPage(dir){const tp=Math.ceil(clips.length/PAGE_SIZE)||1;page=Math.max(0,Math.min(tp-1,page+dir));renderAll()}
+
+// MODE
+function setMode(m){
+  layoutMode=m;
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.dataset.mode===m));
+  document.getElementById('hotkeyView').style.display=m==='hotkeys'?'flex':'none';
+  document.getElementById('historyView').style.display=m==='history'?'block':'none';
+  renderAll();
+}
+
+// MODAL
+function openAdd(){
+  document.getElementById('modalTitle').textContent='NEW CLIP';
+  document.getElementById('editId').value='';
+  document.getElementById('fContent').value='';
+  document.getElementById('fTags').value='';
+  document.getElementById('fSlot').value='';
+  document.getElementById('modalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('fContent').focus(),80);
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function saveClip(){
+  const eidx=document.getElementById('editId').value;
+  const content=document.getElementById('fContent').value.trim();
+  if(!content){toast('Content required');return}
+  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  let slot=parseInt(document.getElementById('fSlot').value);
+  if(isNaN(slot)||slot<1||slot>20)slot=null;
+  if(slot)clips.forEach(c=>{if(c.slot===slot)c.slot=null});
+  if(eidx!==''){const i=parseInt(eidx);clips[i].content=content;clips[i].tags=tags;clips[i].slot=slot;selIdx=i;saveClipToServer(clips[i])}
+  else{const nc={id:gid(),content,tags,slot,pinned:false,ts:new Date().toISOString()};clips.unshift(nc);selIdx=0;createClipOnServer(nc)}
+  closeModal();renderAll();toast(eidx!==''?'Updated':'Added');
+}
+
+// IMPORT/EXPORT
+function exportData(){
+  const b=new Blob([JSON.stringify(clips,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`pof2828_clips_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();toast('Exported');
+}
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();r.onload=function(ev){
+    try{const d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw 0;
+    const ids=new Set(clips.map(c=>c.id));let n=0;
+    d.forEach(x=>{if(!x.id)x.id=gid();if(!ids.has(x.id)){if(!x.ts)x.ts=new Date().toISOString();clips.push(x);createClipOnServer(x);n++}});
+    renderAll();toast('Imported '+n)}catch{toast('Invalid file')}
+  };r.readAsText(file);e.target.value='';
+}
+
+// KEYBOARD
+document.addEventListener('keydown',e=>{
+  const modal=document.getElementById('modalBg').classList.contains('open');
+  const inInput=document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA';
+  if(e.key==='Escape'){if(modal)closeModal();return}
+  if(modal||inInput)return;
+  if(e.key==='ArrowDown'){e.preventDefault();selIdx=Math.min(selIdx+1,clips.length-1);renderAll()}
+  if(e.key==='ArrowUp'){e.preventDefault();selIdx=Math.max(selIdx-1,0);renderAll()}
+  if(e.key==='ArrowLeft'){e.preventDefault();navPage(-1)}
+  if(e.key==='ArrowRight'){e.preventDefault();navPage(1)}
+  if(e.key==='Enter'&&selIdx>=0)copyIdx(selIdx);
+  if(e.ctrlKey&&e.key==='f'){e.preventDefault();document.getElementById('searchInput').focus()}
+  if(e.ctrlKey&&e.shiftKey&&e.key==='N'){e.preventDefault();openAdd()}
+});
+document.getElementById('searchInput').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  // Filter will be visual only in history mode
+  renderAll();
+});
+
+// HELPERS
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function timeAgo(iso){if(!iso)return'';const s=(Date.now()-new Date(iso).getTime())/1000;
+  if(s<60)return'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d'}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1200)}
+
+// INIT
+async function init(){restoreWindowPos();await load();renderAll();lastRenderSignature=currentSignature()}
+init();
+setInterval(async()=>{const old=currentSignature();await load();const nw=currentSignature();if(nw!==old){renderAll();toast('SYNCED')}},2000);
+</script>
+</body>
+</html>

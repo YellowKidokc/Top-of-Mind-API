@@ -1,0 +1,1421 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Theophysics Hub · POF 2828</title>
+<style>
+:root{
+  --bg:#0B0C0F;--surface:#11131A;--surface2:#181B26;
+  --border:rgba(244,246,255,0.08);--border2:rgba(244,246,255,0.14);
+  --gold:#F2C94C;--gold-dim:rgba(242,201,76,0.10);
+  --text:#F4F6FF;--muted:#8A8F9E;--muted2:#5A5F6E;
+  --blue:#4F8EF7;--green:#4ECB71;--red:#E05C6E;--purple:#9B7FE8;--orange:#F6821F;
+  --blue-dim:rgba(79,142,247,0.10);--green-dim:rgba(78,203,113,0.10);
+  --purple-dim:rgba(155,127,232,0.10);--red-dim:rgba(224,92,110,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;}
+
+#topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--surface);z-index:100;}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.tb-logo{font-family:monospace;font-size:9px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;opacity:.7;}
+.tb-title{font-size:15px;font-weight:700;}
+.tb-title span{color:var(--gold);}
+.tb-nav{display:flex;gap:2px;}
+.tb-btn{padding:5px 13px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);transition:all .15s;}
+.tb-btn:hover{color:var(--text);background:var(--surface2);}
+.tb-btn.active{color:var(--gold);background:var(--gold-dim);border-color:rgba(242,201,76,.25);}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-status{font-family:monospace;font-size:9px;color:var(--muted2);}
+.tb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);display:inline-block;margin-right:4px;}
+
+#main{flex:1;display:flex;overflow:hidden;}
+.view{display:none;flex:1;overflow:hidden;}
+.view.active{display:flex;}
+
+/* ── CLIPBOARD ── */
+#view-clipboard{flex-direction:row;}
+.clip-sidebar{width:190px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-y:auto;}
+.cs-hd{padding:12px 14px;border-bottom:1px solid var(--border);}
+.cs-lbl{font-family:monospace;font-size:9px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:5px;}
+.cs-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11px;outline:none;}
+.cs-search::placeholder{color:var(--muted2);}
+.cs-search:focus{border-color:rgba(242,201,76,.3);}
+.cs-gl{font-family:monospace;font-size:8px;letter-spacing:.12em;color:var(--muted2);text-transform:uppercase;padding:10px 14px 3px;}
+.cs-item{padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:7px;border-right:2px solid transparent;transition:all .12s;user-select:none;}
+.cs-item:hover{background:var(--surface2);color:var(--text);}
+.cs-item.a-gold{background:var(--gold-dim);color:var(--gold);border-right-color:var(--gold);}
+.cs-item.a-blue{background:var(--blue-dim);color:var(--blue);border-right-color:var(--blue);}
+.cs-item.a-purple{background:var(--purple-dim);color:var(--purple);border-right-color:var(--purple);}
+.cs-item.a-green{background:var(--green-dim);color:var(--green);border-right-color:var(--green);}
+.cs-badge{margin-left:auto;font-family:monospace;font-size:9px;opacity:.5;}
+.cs-div{height:1px;background:var(--border);margin:5px 0;}
+
+.clip-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.cm-top{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;}
+.cm-title{font-size:14px;font-weight:600;}
+.cm-count{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px;font-family:monospace;}
+.cm-acts{display:flex;gap:7px;}
+.cm-add{font-size:11px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(242,201,76,.3);border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:600;}
+.cm-add:hover{background:rgba(242,201,76,.2);}
+.cm-sort{font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;cursor:pointer;}
+.cm-cards{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:7px;}
+.cm-cards::-webkit-scrollbar{width:3px;}
+.cm-cards::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;transition:border-color .15s,transform .1s;animation:fU .2s ease both;}
+@keyframes fU{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.cc:hover{border-color:var(--border2);transform:translateY(-1px);}
+.cc.gold{border-color:rgba(242,201,76,.18);}
+.cc.blue{border-color:rgba(79,142,247,.18);}
+.cc.purple{border-color:rgba(155,127,232,.18);}
+.cc.green{border-color:rgba(78,203,113,.18);}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:3px;}
+.cc-title{font-size:12px;font-weight:600;flex:1;line-height:1.4;}
+.cc-title.gold{color:var(--gold);}.cc-title.blue{color:var(--blue);}.cc-title.purple{color:var(--purple);}.cc-title.green{color:var(--green);}
+.cc-tag{font-family:monospace;font-size:9px;padding:2px 6px;border-radius:8px;flex-shrink:0;border:1px solid;}
+.cc-tag.gold{background:var(--gold-dim);color:var(--gold);border-color:rgba(242,201,76,.22);}
+.cc-tag.blue{background:var(--blue-dim);color:var(--blue);border-color:rgba(79,142,247,.22);}
+.cc-tag.purple{background:var(--purple-dim);color:var(--purple);border-color:rgba(155,127,232,.22);}
+.cc-tag.green{background:var(--green-dim);color:var(--green);border-color:rgba(78,203,113,.22);}
+.cc-pre{font-size:11px;color:var(--muted);margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5;}
+.cc-foot{display:flex;align-items:center;justify-content:space-between;}
+.cc-btns{display:flex;gap:4px;}
+.cb{font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .12s;}
+.cb:hover{color:var(--text);border-color:var(--border2);background:var(--surface2);}
+.cb.prim{background:var(--gold-dim);border-color:rgba(242,201,76,.3);color:var(--gold);}
+.cb.c-blue{color:var(--blue);border-color:rgba(79,142,247,.28);}
+.cb.c-purple{color:var(--purple);border-color:rgba(155,127,232,.28);}
+.cb.c-green{color:var(--green);border-color:rgba(78,203,113,.28);}
+.cc-meta{font-family:monospace;font-size:9px;color:var(--muted2);}
+
+.clip-detail{width:265px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;}
+.cd-hd{padding:12px 14px;border-bottom:1px solid var(--border);font-family:monospace;font-size:9px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;}
+.cd-body{padding:12px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:11px;}
+.cd-body::-webkit-scrollbar{width:3px;}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.stat-chip{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center;}
+.sc-val{font-size:19px;font-weight:700;color:var(--gold);line-height:1;}
+.sc-lbl{font-family:monospace;font-size:8px;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-top:3px;}
+.ag-mini{background:var(--surface2);border:1px solid rgba(155,127,232,.22);border-radius:9px;padding:11px;}
+.ag-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.ag-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
+.ag-name{font-size:12px;font-weight:700;color:var(--purple);}
+.ag-st{font-family:monospace;font-size:9px;color:var(--muted2);margin-left:auto;}
+.ag-inp{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:11px;color:var(--text);outline:none;resize:none;height:48px;font-family:inherit;}
+.ag-inp:focus{border-color:rgba(155,127,232,.4);}
+.ag-send{width:100%;margin-top:5px;padding:5px;border-radius:6px;background:var(--purple-dim);border:1px solid rgba(155,127,232,.28);color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;}
+.ag-send:hover{background:rgba(155,127,232,.17);}
+.pin-item{display:flex;gap:7px;align-items:flex-start;padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:border-color .12s;margin-bottom:5px;}
+.pin-item:hover{border-color:rgba(242,201,76,.22);}
+.pi-ico{font-size:13px;flex-shrink:0;margin-top:1px;}
+.pi-txt{font-size:11px;color:var(--text);line-height:1.4;}
+.pi-meta{font-family:monospace;font-size:9px;color:var(--muted2);}
+
+/* ── KNOWLEDGE ── */
+#view-knowledge{flex-direction:column;overflow-y:auto;}
+.kv-wrap{padding:18px 22px;}
+.kv-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:13px;}
+.kv-grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:13px;}
+.kv-gridFull{display:grid;grid-template-columns:1fr;gap:12px;}
+.kv-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.kvc-hd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.kvc-ico{font-size:16px;}
+.kvc-title{font-weight:600;font-size:13px;}
+.kvc-title.gold{color:var(--gold);}.kvc-title.blue{color:var(--blue);}.kvc-title.purple{color:var(--purple);}.kvc-title.green{color:var(--green);}.kvc-title.red{color:var(--red);}
+.kvc-body{padding:13px 15px;}
+.sparkline{display:flex;align-items:flex-end;gap:2px;height:32px;margin-bottom:9px;}
+.spark-bar{flex:1;background:var(--gold-dim);border-radius:2px 2px 0 0;border:1px solid rgba(242,201,76,.12);min-height:3px;}
+.spark-bar.today{background:var(--gold);}
+.stat-big{font-size:24px;font-weight:700;color:var(--gold);line-height:1;}
+.stat-lbl{font-size:11px;color:var(--muted);margin-bottom:9px;}
+.kv-list{display:flex;flex-direction:column;gap:5px;}
+.kv-li{padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);display:flex;gap:7px;align-items:center;}
+.kv-li-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.thread-item{padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:border-color .12s;margin-bottom:6px;}
+.thread-item:hover{border-color:rgba(155,127,232,.28);}
+.ti-title{font-size:12px;font-weight:600;color:var(--purple);margin-bottom:2px;}
+.ti-meta{font-size:10px;color:var(--muted2);font-family:monospace;}
+.ti-st{display:inline-block;font-size:9px;padding:1px 6px;border-radius:9px;margin-top:4px;}
+.ti-st.active{background:var(--green-dim);color:var(--green);border:1px solid rgba(78,203,113,.22);}
+.ti-st.paused{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(242,201,76,.22);}
+.ti-st.blocked{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,110,.22);}
+.pub-item{display:flex;align-items:center;gap:9px;padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:border-color .12s;}
+.pub-item:hover{border-color:rgba(242,201,76,.22);}
+.pub-num{font-family:monospace;font-size:10px;color:var(--muted2);width:20px;text-align:right;flex-shrink:0;}
+.pub-title{font-size:11px;flex:1;}
+.pub-st{font-family:monospace;font-size:9px;padding:1px 6px;border-radius:9px;border:1px solid;flex-shrink:0;}
+.pub-st.done{color:var(--green);border-color:rgba(78,203,113,.28);background:var(--green-dim);}
+.pub-st.inprog{color:var(--gold);border-color:rgba(242,201,76,.28);background:var(--gold-dim);}
+.pub-st.blocked{color:var(--red);border-color:rgba(224,92,110,.28);background:var(--red-dim);}
+.pub-st.queue{color:var(--muted2);border-color:var(--border);}
+.baes-row{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;}
+.baes-ai{font-size:10px;font-weight:600;width:78px;flex-shrink:0;}
+.baes-bw{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.baes-bf{height:100%;border-radius:3px;}
+.baes-score{font-family:monospace;font-size:11px;font-weight:700;width:32px;text-align:right;}
+.conv-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:18px;font-size:10px;font-family:monospace;}
+.conv-y{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(242,201,76,.28);}
+.conv-r{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,110,.28);}
+.bk-item{padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid;border-radius:0 7px 7px 0;margin-bottom:6px;}
+.bk-hd{display:flex;align-items:center;gap:7px;margin-bottom:2px;}
+.bk-title{font-size:11px;font-weight:700;}
+.bk-date{font-family:monospace;font-size:9px;color:var(--muted2);margin-left:auto;}
+.bk-desc{font-size:10px;color:var(--muted);line-height:1.5;}
+
+/* ── TIME ── */
+#view-time{flex-direction:column;overflow-y:auto;}
+.time-wrap{padding:18px 22px;}
+.time-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;margin-bottom:13px;}
+.time-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:13px;}
+.tm-list{display:flex;flex-direction:column;gap:6px;}
+.tm-task{display:flex;align-items:flex-start;gap:9px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .12s;}
+.tm-task:hover{border-color:rgba(242,201,76,.22);}
+.tm-check{width:16px;height:16px;border-radius:50%;border:1px solid var(--border2);margin-top:1px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--bg);}
+.tm-task.done .tm-check{background:var(--green);border-color:var(--green);}
+.tm-task.done .tm-name{text-decoration:line-through;color:var(--muted2);}
+.tm-copy{font-family:monospace;font-size:9px;color:var(--muted2);}
+.tm-name{font-size:12px;font-weight:600;}
+.tm-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.tm-tag{font-family:monospace;font-size:9px;padding:1px 6px;border-radius:999px;border:1px solid rgba(242,201,76,.22);background:var(--gold-dim);color:var(--gold);margin-left:auto;flex-shrink:0;}
+.tm-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
+.tm-btn{padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:11px;cursor:pointer;transition:all .12s;}
+.tm-btn:hover{color:var(--text);border-color:var(--border2);}
+.tm-btn.gold{background:var(--gold-dim);border-color:rgba(242,201,76,.25);color:var(--gold);}
+.folder-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.folder-card{padding:10px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--gold);}
+.folder-name{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:3px;}
+.folder-path{font-family:monospace;font-size:9px;color:var(--muted2);line-height:1.5;word-break:break-all;}
+.folder-desc{font-size:10px;color:var(--muted);line-height:1.5;margin-top:5px;}
+.folder-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.module-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.module-card{padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .12s;}
+.module-card:hover{border-color:rgba(79,142,247,.24);}
+.module-name{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:2px;}
+.module-desc{font-size:10px;color:var(--muted);line-height:1.5;}
+.module-path{font-family:monospace;font-size:9px;color:var(--muted2);margin-top:5px;line-height:1.5;word-break:break-all;}
+.day-strip{display:flex;flex-direction:column;gap:6px;}
+.day-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;}
+.day-date{width:88px;flex-shrink:0;font-size:11px;font-weight:600;}
+.day-desc{font-size:10px;color:var(--muted);flex:1;}
+.project-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;font-size:10px;margin:0 6px 6px 0;}
+
+/* ── FUNCTIONS ── */
+#view-functions{flex-direction:column;overflow-y:auto;}
+.fn-wrap{padding:18px 22px;}
+.fn-sect-title{font-size:13px;font-weight:600;margin-bottom:11px;display:flex;align-items:center;gap:9px;}
+.fn-sect-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.fn-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.fn-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.fnc-hd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.fnc-ico{font-size:16px;}
+.fnc-title{font-weight:600;font-size:13px;}
+.fnc-body{padding:13px 15px;}
+.dropzone{border:2px dashed rgba(242,201,76,.22);border-radius:9px;padding:22px;text-align:center;cursor:pointer;background:var(--gold-dim);transition:all .2s;}
+.dropzone:hover{border-color:rgba(242,201,76,.55);background:rgba(242,201,76,.13);}
+.dz-ico{font-size:24px;margin-bottom:6px;}
+.dz-txt{font-size:12px;color:var(--muted);}
+.dz-txt strong{color:var(--gold);}
+.dz-types{font-family:monospace;font-size:9px;color:var(--muted2);margin-top:4px;}
+.qi{display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;}
+.qi-ico{font-size:14px;flex-shrink:0;}
+.qi-info{flex:1;min-width:0;}
+.qi-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qi-meta{font-size:9px;color:var(--muted2);font-family:monospace;margin-top:2px;}
+.qi-bar{height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden;}
+.qi-fill{height:100%;border-radius:2px;background:var(--gold);}
+.qi-st{font-family:monospace;font-size:9px;padding:2px 6px;border-radius:9px;border:1px solid;flex-shrink:0;}
+.qi-st.done{color:var(--green);border-color:rgba(78,203,113,.28);background:var(--green-dim);}
+.qi-st.proc{color:var(--gold);border-color:rgba(242,201,76,.28);background:var(--gold-dim);}
+.qi-st.pend{color:var(--muted);border-color:var(--border);}
+.tiles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.cf-tile{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px;cursor:pointer;text-align:center;transition:all .15s;}
+.cf-tile:hover{border-color:rgba(246,130,31,.38);background:rgba(246,130,31,.05);}
+.cft-ico{font-size:19px;margin-bottom:5px;}
+.cft-name{font-size:11px;font-weight:600;color:var(--orange);}
+.cft-url{font-size:9px;color:var(--muted2);font-family:monospace;margin-top:2px;}
+.cf-tile.add-tile{border-style:dashed;opacity:.5;}
+.cf-tile.add-tile:hover{opacity:1;}
+.infra-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+.im-chip{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;}
+.im-lbl{font-family:monospace;font-size:8px;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.im-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+.im-desc{font-size:10px;color:var(--muted);}
+.im-st{margin-top:5px;font-size:9px;}
+.social-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px;}
+.plat-chip{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:18px;font-size:11px;cursor:pointer;transition:all .15s;}
+.plat-chip:hover{border-color:rgba(242,201,76,.28);}
+.plat-chip.home{color:var(--gold);border-color:rgba(242,201,76,.28);}
+.p-dot{width:5px;height:5px;border-radius:50%;background:var(--green);}
+
+/* ── KNOWLEDGE GRAPH ── */
+.kg-wrap{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:13px;}
+.kg-hd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.kg-canvas{display:block;width:100%;cursor:grab;}
+.kg-canvas:active{cursor:grabbing;}
+.kg-legend{display:flex;gap:14px;padding:8px 15px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.kg-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.kg-leg-dot{width:8px;height:8px;border-radius:50%;}
+.kg-tooltip{position:absolute;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text);pointer-events:none;z-index:50;opacity:0;transition:opacity .15s;max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.kg-tooltip.show{opacity:1;}
+.kg-tt-title{font-weight:700;margin-bottom:3px;}
+.kg-tt-type{font-family:monospace;font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.kg-tt-desc{font-size:10px;color:var(--muted);line-height:1.5;}
+.kg-stats{display:flex;gap:9px;padding:8px 15px;border-top:1px solid var(--border);}
+.kg-stat{font-family:monospace;font-size:10px;color:var(--muted2);}
+.kg-stat b{color:var(--gold);font-size:12px;}
+.dp-card-click{cursor:pointer;transition:border-color .2s,box-shadow .2s;}
+.dp-card-click:hover{border-color:rgba(242,201,76,.35);box-shadow:0 0 20px rgba(242,201,76,.06);}
+.dp-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(11,12,15,.85);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.dp-modal-overlay.open{display:flex;}
+.dp-modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:780px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 60px rgba(0,0,0,.6);}
+.dp-modal::-webkit-scrollbar{width:3px;}
+.dp-modal::-webkit-scrollbar-thumb{background:var(--border2);}
+.dp-modal-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10;}
+.dp-modal-title{font-size:16px;font-weight:700;color:var(--gold);}
+.dp-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dp-close:hover{color:var(--text);border-color:var(--border2);}
+.dp-modal-body{padding:18px 20px;}
+.dp-section{margin-bottom:18px;}
+.dp-section-title{font-family:monospace;font-size:9px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.dp-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.dp-heatmap{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.dp-heat-cell{padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;text-align:center;transition:all .2s;}
+.dp-heat-cell.active{border-color:rgba(242,201,76,.3);}
+.dp-heat-sym{font-family:monospace;font-size:14px;font-weight:700;margin-bottom:2px;}
+.dp-heat-name{font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;}
+.dp-heat-depth{font-size:9px;margin-top:4px;font-family:monospace;}
+.dp-timeline{position:relative;padding-left:18px;}
+.dp-tl-line{position:absolute;left:5px;top:0;bottom:0;width:1px;background:var(--border);}
+.dp-tl-item{position:relative;padding:8px 12px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;}
+.dp-tl-dot{position:absolute;left:-17px;top:12px;width:9px;height:9px;border-radius:50%;border:2px solid var(--surface);z-index:1;}
+.dp-tl-time{font-family:monospace;font-size:9px;color:var(--muted2);margin-bottom:2px;}
+.dp-tl-desc{font-size:11px;color:var(--text);line-height:1.5;}
+.dp-tl-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.dp-tl-tag{font-family:monospace;font-size:8px;padding:1px 5px;border-radius:9px;border:1px solid;}
+.dp-links{display:flex;flex-direction:column;gap:5px;}
+.dp-link-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;}
+.dp-link-arrow{color:var(--gold);font-family:monospace;font-weight:700;}
+/* ── COMMS ── */
+#view-comms{flex-direction:column;overflow-y:auto;}
+.comms-wrap{padding:18px 22px;}
+.comms-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;}
+.ch-row{padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;cursor:pointer;display:flex;align-items:center;gap:9px;transition:border-color .12s;}
+.ch-row:hover{border-color:rgba(242,201,76,.22);}
+.ch-name{font-size:12px;font-weight:600;flex:1;}
+.ch-meta{font-family:monospace;font-size:9px;color:var(--muted2);}
+.ch-badge{font-family:monospace;font-size:9px;padding:1px 6px;border-radius:9px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(155,127,232,.22);}
+.log-entry{padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;}
+.le-date{font-family:monospace;font-size:9px;color:var(--gold);margin-bottom:3px;}
+.le-sum{font-size:11px;color:var(--muted);line-height:1.5;}
+.le-files{font-family:monospace;font-size:9px;color:var(--muted2);margin-top:3px;}
+
+/* ── SWARM ── */
+#view-swarm{flex-direction:column;overflow-y:auto;}
+.swarm-wrap{padding:18px 22px;}
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;}
+
+/* ── SHARED ── */
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-shrink:0;}
+.sh-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;border:1px solid;flex-shrink:0;}
+.sh-ico.gold{background:var(--gold-dim);border-color:rgba(242,201,76,.28);}
+.sh-ico.blue{background:var(--blue-dim);border-color:rgba(79,142,247,.28);}
+.sh-ico.purple{background:var(--purple-dim);border-color:rgba(155,127,232,.28);}
+.sh-lbl{font-family:monospace;font-size:9px;letter-spacing:.14em;color:var(--muted2);text-transform:uppercase;margin-bottom:2px;}
+.sh-title{font-size:16px;font-weight:700;}
+.sh-title span{color:var(--gold);}
+
+#toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid rgba(242,201,76,.28);color:var(--gold);font-size:12px;padding:8px 14px;border-radius:7px;font-family:monospace;opacity:0;transform:translateY(7px);transition:all .22s;pointer-events:none;z-index:999;}
+#toast.show{opacity:1;transform:none;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="tb-brand">
+    <span class="tb-logo">POF 2828</span>
+    <span class="tb-title">Theophysics <span>Hub</span></span>
+  </div>
+  <div class="tb-nav">
+    <button class="tb-btn" onclick="switchView('knowledge')">🔬 Knowledge</button>
+    <button class="tb-btn active" onclick="switchView('clipboard')">📋 Clipboard</button>
+    <button class="tb-btn" onclick="switchView('time')">⏱ Time</button>
+    <button class="tb-btn" onclick="switchView('functions')">⚙️ Functions</button>
+    <button class="tb-btn" onclick="switchView('comms')">⚡ Comms Hub</button>
+    <button class="tb-btn" onclick="switchView('swarm')">🐝 Swarm</button>
+  </div>
+  <div class="tb-right">
+    <span class="tb-status"><span class="tb-dot"></span>LOGOS AGENT</span>
+    <span class="tb-status" id="clock">--:--</span>
+  </div>
+</div>
+
+<div id="main">
+
+<!-- ═══ CLIPBOARD ═══ -->
+<div class="view active" id="view-clipboard">
+  <div class="clip-sidebar">
+    <div class="cs-hd">
+      <div class="cs-lbl">Clipboard Hub</div>
+      <input class="cs-search" placeholder="🔍  Search…" oninput="filterCards(this.value)">
+    </div>
+    <div class="cs-gl">Browse</div>
+    <div class="cs-item a-gold" onclick="filterType('all',this,'a-gold')">📋 All Items <span class="cs-badge">142</span></div>
+    <div class="cs-item" onclick="filterType('pinned',this,'a-gold')">📌 Pinned <span class="cs-badge">11</span></div>
+    <div class="cs-div"></div>
+    <div class="cs-gl">By Type</div>
+    <div class="cs-item" onclick="filterType('clipboard',this,'a-gold')">✂️ Clipboard <span class="cs-badge">31</span></div>
+    <div class="cs-item" onclick="filterType('snippet',this,'a-blue')">📄 Snippets <span class="cs-badge">47</span></div>
+    <div class="cs-item" onclick="filterType('prompt',this,'a-purple')">💬 Prompts <span class="cs-badge">28</span></div>
+    <div class="cs-item" onclick="filterType('bookmark',this,'a-green')">🔖 Bookmarks <span class="cs-badge">36</span></div>
+    <div class="cs-div"></div>
+    <div class="cs-item" style="color:var(--purple)" onclick="filterType('agent',this,'a-purple')">🤖 AI Agent</div>
+  </div>
+
+  <div class="clip-main">
+    <div class="cm-top">
+      <div class="cm-title" id="cm-title">All Items <span class="cm-count">#142</span></div>
+      <div class="cm-acts">
+        <div class="cm-sort">Sort: Recent ▾</div>
+        <div class="cm-add" onclick="toast('New item — Phase 2 with D1 backend')">+ New</div>
+      </div>
+    </div>
+    <div class="cm-cards" id="card-container"></div>
+  </div>
+
+  <div class="clip-detail">
+    <div class="cd-hd">Hub Status</div>
+    <div class="cd-body">
+      <div class="stat-row">
+        <div class="stat-chip"><div class="sc-val">142</div><div class="sc-lbl">Total Items</div></div>
+        <div class="stat-chip"><div class="sc-val">11</div><div class="sc-lbl">Pinned</div></div>
+        <div class="stat-chip"><div class="sc-val" style="color:var(--green)">Live</div><div class="sc-lbl">Clipboard</div></div>
+        <div class="stat-chip"><div class="sc-val" style="color:var(--purple)">∞</div><div class="sc-lbl">Memory</div></div>
+      </div>
+      <div class="ag-mini">
+        <div class="ag-hd"><div class="ag-dot"></div><div class="ag-name">Logos Agent</div><div class="ag-st">online</div></div>
+        <textarea class="ag-inp" placeholder="Ask about any item, synthesize, extract…" id="agent-input"></textarea>
+        <button class="ag-send" onclick="agentSend()">→ Send to Agent</button>
+      </div>
+      <div>
+        <div style="font-family:monospace;font-size:8px;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Pinned Quick Access</div>
+        <div class="pin-item" onclick="toast('Master Equation copied!')"><div class="pi-ico">📐</div><div><div class="pi-txt">χ = ∭(G·M·E·S·T·K·R·Q·F·C) dxdydt</div><div class="pi-meta">Master Equation</div></div></div>
+        <div class="pin-item" onclick="toast('Moral Conservation copied!')"><div class="pi-ico">⚖️</div><div><div class="pi-txt">dE/dt = -αD(t) + βC(Ψ,χ) · Papers 9–10</div><div class="pi-meta">Moral Conservation Eq.</div></div></div>
+        <div class="pin-item" onclick="toast('System prompt copied!')"><div class="pi-ico">💬</div><div><div class="pi-txt">Theophysics system prompt v4.1</div><div class="pi-meta">Snippet · pinned</div></div></div>
+        <div class="pin-item" onclick="toast('Thread opened!')"><div class="pi-ico">🔭</div><div><div class="pi-txt">Trinity isomorphism — Feb 14 floor</div><div class="pi-meta">Research thread</div></div></div>
+      </div>
+      <div>
+        <div style="font-family:monospace;font-size:8px;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Data Sources</div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:10px;">
+          <div style="display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>R2 bucket 10176 (daily log)</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>D1 — Session memory</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>Clipboard (live watch)</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--gold)"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>Obsidian O:\_Theophysics_v3</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--blue)"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>Notion — Opus Vault</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--muted2)"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>Web search (on demand)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ KNOWLEDGE ═══ -->
+<div class="view" id="view-knowledge">
+  <div class="kv-wrap">
+    <div class="sh"><div class="sh-ico blue">🔬</div><div><div class="sh-lbl">Section A</div><div class="sh-title">Knowledge <span>Surface</span></div></div></div>
+    <!-- TOP ROW: Daily Progress + Research Threads -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;">
+      <div class="kv-card dp-card-click" id="daily-progress-card" onclick="openProgressModal()">
+        <div class="kvc-hd"><div class="kvc-ico">📊</div><div class="kvc-title gold">Daily Progress</div><div style="margin-left:auto;font-family:monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;gap:4px;">click to expand ›</div></div>
+        <div class="kvc-body">
+          <div class="sparkline" id="sparkline"></div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px;">
+            <div class="stat-big">47</div>
+            <div style="font-size:11px;color:var(--muted);">thesis units today</div>
+          </div>
+          <div class="kv-list">
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--gold)"></div>12 notes edited in Obsidian</div>
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--blue)"></div>8 new concept links formed</div>
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--green)"></div>3 papers ingested + summarized</div>
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--purple)"></div>2 agent synthesis reports</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:4px;">
+            <div style="flex:1;height:4px;border-radius:2px;background:var(--gold);opacity:.7;"></div>
+            <div style="flex:.6;height:4px;border-radius:2px;background:var(--blue);opacity:.7;"></div>
+            <div style="flex:.3;height:4px;border-radius:2px;background:var(--green);opacity:.7;"></div>
+            <div style="flex:.2;height:4px;border-radius:2px;background:var(--purple);opacity:.7;"></div>
+            <div style="flex:.4;height:4px;border-radius:2px;background:var(--surface2);"></div>
+          </div>
+        </div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">🔭</div><div class="kvc-title purple">Research Threads</div></div>
+        <div class="kvc-body">
+          <div class="thread-item" onclick="toast('Opening Trinity thread…')"><div class="ti-title">Trinity Isomorphism Proof</div><div class="ti-meta">Feb 14 · THE FLOOR · 14 notes</div><div class="ti-st active">ACTIVE · Floor declared</div></div>
+          <div class="thread-item" onclick="toast('Opening P2…')"><div class="ti-title">P2 — Quantum Bridge (keystone)</div><div class="ti-meta">Feb 26 · Collapse mechanism · 31 notes</div><div class="ti-st blocked">BLOCKED · Publication gated here</div></div>
+          <div class="thread-item" onclick="toast('Opening Adversary Thread…')"><div class="ti-title">Adversary Thread — Constitutional Erosion</div><div class="ti-meta">Mar 8 · DONT_LOSE.md · 7 notes</div><div class="ti-st paused">PAUSED</div></div>
+          <button style="width:100%;padding:6px;background:var(--purple-dim);border:1px solid rgba(155,127,232,.28);border-radius:6px;color:var(--purple);font-size:11px;cursor:pointer;" onclick="toast('Agent surfacing hidden threads…')">🤖 Surface hidden threads</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULL-WIDTH KNOWLEDGE GRAPH -->
+    <div class="kg-wrap" id="kg-wrap">
+      <div class="kg-hd">
+        <div class="kvc-ico">🕸️</div>
+        <div class="kvc-title blue">Framework Knowledge Graph</div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <button class="cb" onclick="kgResetView()" style="font-size:10px;">Reset</button>
+          <button class="cb" onclick="kgToggleLabels()" style="font-size:10px;">Labels</button>
+          <div style="font-family:monospace;font-size:9px;color:var(--muted2);" id="kg-node-count">—</div>
+        </div>
+      </div>
+      <div style="position:relative;">
+        <canvas id="kgCanvas" width="900" height="420" class="kg-canvas"></canvas>
+        <div class="kg-tooltip" id="kg-tooltip">
+          <div class="kg-tt-type" id="kg-tt-type"></div>
+          <div class="kg-tt-title" id="kg-tt-title"></div>
+          <div class="kg-tt-desc" id="kg-tt-desc"></div>
+        </div>
+      </div>
+      <div class="kg-stats" id="kg-stats">
+        <div class="kg-stat"><b>10</b> domains</div>
+        <div class="kg-stat"><b>5</b> symmetry pairs</div>
+        <div class="kg-stat"><b>8</b> papers</div>
+        <div class="kg-stat"><b>8</b> symbols</div>
+        <div class="kg-stat"><b>189</b> axioms</div>
+        <div class="kg-stat"><b>10</b> laws</div>
+      </div>
+      <div class="kg-legend">
+        <div class="kg-leg-item"><div class="kg-leg-dot" style="background:var(--gold);"></div>Core (χ, LLC)</div>
+        <div class="kg-leg-item"><div class="kg-leg-dot" style="background:var(--blue);"></div>Domains (G·M·E·S·T·K·R·Q·F·C)</div>
+        <div class="kg-leg-item"><div class="kg-leg-dot" style="background:var(--purple);"></div>Symbols (Φ, Ψ_S, σ, Ĝ, Ω, Gc)</div>
+        <div class="kg-leg-item"><div class="kg-leg-dot" style="background:var(--green);"></div>Papers (P1–P10)</div>
+        <div class="kg-leg-item"><div class="kg-leg-dot" style="background:var(--muted2);opacity:.5;"></div>Axiom clusters</div>
+        <div class="kg-leg-item"><div class="kg-leg-dot" style="background:var(--gold);width:12px;height:3px;border-radius:2px;"></div>Symmetry pair (Law↔Law)</div>
+      </div>
+    </div>
+
+    <!-- DAILY PROGRESS MODAL -->
+    <div class="dp-modal-overlay" id="dp-modal-overlay" onclick="if(event.target===this)closeProgressModal()">
+      <div class="dp-modal">
+        <div class="dp-modal-hd">
+          <div class="dp-modal-title">📊 Daily Progress — Deep View</div>
+          <button class="dp-close" onclick="closeProgressModal()">✕</button>
+        </div>
+        <div class="dp-modal-body" id="dp-modal-body"></div>
+      </div>
+    </div>
+    <div class="kv-grid2">
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">📰</div><div class="kvc-title gold">Logos Papers — Publication Status</div></div>
+        <div class="kvc-body" id="pub-tracker"></div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">⚖️</div><div class="kvc-title red">BAES Audit — Constitutional</div></div>
+        <div class="kvc-body">
+          <div style="font-family:monospace;font-size:9px;color:var(--muted2);margin-bottom:7px;">BINDING CONTRACT v3 · AUTHOR STANDARD</div>
+          <div id="baes-rows"></div>
+          <div style="margin-top:7px;display:flex;gap:5px;flex-wrap:wrap;">
+            <span class="conv-badge conv-y">🟡 YELLOW · author-std 2.4</span>
+            <span class="conv-badge conv-r">🔴 RED · all-eval 5.6</span>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:7px;">ChatGPT outlier: legal doctrine, not author intent. Operative finding: 1.0–3.4.</div>
+        </div>
+      </div>
+    </div>
+    <div class="kv-gridFull">
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">⚡</div><div class="kvc-title gold">Recent Breakthroughs — 2026-03-07 Critical Edits (10/10 ✅)</div></div>
+        <div class="kvc-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="breakthroughs"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FUNCTIONS ═══ -->
+<div class="view" id="view-time">
+  <div class="time-wrap">
+    <div class="sh"><div class="sh-ico gold">⏱</div><div><div class="sh-lbl">Command Layer</div><div class="sh-title">Time + <span>Physical Folders</span></div></div></div>
+    <div class="time-grid">
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">✅</div><div class="kvc-title gold">Today Board</div></div>
+        <div class="kvc-body">
+          <div style="font-family:monospace;font-size:9px;color:var(--muted2);margin-bottom:8px;">Inbox drives capture. Today drives execution. Upcoming drives sequence.</div>
+          <div class="tm-list" id="time-task-list"></div>
+          <div class="tm-tools">
+            <button class="tm-btn gold" onclick="addQuickTask('TODAY')">+ Quick Task</button>
+            <button class="tm-btn" onclick="copyTodaySummary()">Copy Summary</button>
+            <button class="tm-btn" onclick="toast('Calendar bridge — Phase 2')">Connect Calendar</button>
+          </div>
+        </div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">📁</div><div class="kvc-title blue">Physical Folder Spine</div></div>
+        <div class="kvc-body">
+          <div style="font-family:monospace;font-size:9px;color:var(--muted2);margin-bottom:8px;">Desktop-rooted now. Move this `Data` folder into cloud sync later and the system becomes phone/desktop portable.</div>
+          <div class="folder-grid" id="folder-grid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="time-grid-3">
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">🧭</div><div class="kvc-title purple">Dashboard Modules</div></div>
+        <div class="kvc-body">
+          <div class="module-grid" id="module-grid"></div>
+        </div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">📅</div><div class="kvc-title green">Upcoming</div></div>
+        <div class="kvc-body">
+          <div class="day-strip" id="upcoming-strip"></div>
+        </div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">#</div><div class="kvc-title gold">Projects</div></div>
+        <div class="kvc-body">
+          <div style="margin-bottom:8px;">
+            <span class="project-chip"># TODAY</span>
+            <span class="project-chip"># Work</span>
+            <span class="project-chip"># Home</span>
+            <span class="project-chip"># YouTube</span>
+            <span class="project-chip"># LLL</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.6;">
+            This is the operating layer for the rest of the stack: capture into folders, route to the right module, then publish or distribute from the same surface.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FUNCTIONS ═══ -->
+<div class="view" id="view-functions">
+  <div class="fn-wrap">
+    <div class="sh"><div class="sh-ico purple">⚙️</div><div><div class="sh-lbl">Section C</div><div class="sh-title">Functions <span>/ Ingest + Tools</span></div></div></div>
+    <div class="fn-sect-title" style="color:var(--gold)">Ingest Engine</div>
+    <div class="fn-grid">
+      <div class="fn-card">
+        <div class="fnc-hd"><div class="fnc-ico">📥</div><div class="fnc-title" style="color:var(--gold)">Upload</div></div>
+        <div class="fnc-body">
+          <div class="dropzone" onclick="toast('Drop files here — PDF, audio, video, DOCX, URLs')">
+            <div class="dz-ico">⬆️</div>
+            <div class="dz-txt"><strong>Drop files or click</strong><br>AI summarize · transcribe · extract · tag</div>
+            <div class="dz-types">PDF · MP3/MP4 · MD · HTML · DOCX · URL · TXT</div>
+          </div>
+        </div>
+      </div>
+      <div class="fn-card">
+        <div class="fnc-hd"><div class="fnc-ico">⚙️</div><div class="fnc-title" style="color:var(--blue)">Processing Queue</div></div>
+        <div class="fnc-body" id="queue-container"></div>
+      </div>
+    </div>
+    <div class="fn-sect-title" style="color:var(--green)">Social Media Protocol</div>
+    <div class="fn-card" style="margin-bottom:18px;">
+      <div class="fnc-hd"><div class="fnc-ico">📣</div><div class="fnc-title" style="color:var(--green)">Platform Status · Content Reservoir Phase</div></div>
+      <div class="fnc-body">
+        <div class="social-row" id="social-platforms"></div>
+        <div style="font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;line-height:1.6;"><span style="color:var(--gold);font-weight:600;">Protocol:</span> Light engagement (&lt;10 words) on David's logged-in accounts. No DMs. No debates. Log everything. Flag real convos for David. Claude manages email via Gmail MCP.</div>
+      </div>
+    </div>
+    <div class="fn-sect-title" style="color:var(--orange)">Cloudflare Pages Tiles</div>
+    <div class="fn-card" style="margin-bottom:18px;">
+      <div class="fnc-hd"><div class="fnc-ico">🌐</div><div class="fnc-title" style="color:var(--orange)">Quick Launch</div></div>
+      <div class="fnc-body"><div class="tiles-grid" id="tiles-grid"></div></div>
+    </div>
+    <div class="fn-sect-title" style="color:var(--green)">Infrastructure</div>
+    <div class="infra-grid" id="infra-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ COMMS HUB ═══ -->
+<div class="view" id="view-comms">
+  <div class="comms-wrap">
+    <div class="sh"><div class="sh-ico" style="background:rgba(246,130,31,.09);border-color:rgba(246,130,31,.28);">⚡</div><div><div class="sh-lbl">Cloudflare Worker</div><div class="sh-title" style="color:var(--orange)">AI Comms Hub</div></div></div>
+    <div class="comms-grid">
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">📡</div><div class="kvc-title" style="color:var(--orange)">AI Channels</div></div>
+        <div class="kvc-body" id="channels-list"></div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">📋</div><div class="kvc-title gold">Daily Log · Mar 8–9 · 10 deliverables</div></div>
+        <div class="kvc-body">
+          <div class="log-entry">
+            <div class="le-date">2026-03-09</div>
+            <div class="le-sum">Constitutional Audit 4AI consolidated. Binding Contract v3 written. Adversary Thread captured. BAES v1.0 created. Recovery Validation Excel built. AI Comms Hub architecture designed.</div>
+            <div class="le-files">→ Constitutional_Audit_4AI.xlsx · Binding_Contract_v3.md · BAES_v1.0.md · The_Adversary_Thread_DONT_LOSE.md</div>
+          </div>
+          <div style="font-family:monospace;font-size:8px;color:var(--muted2);margin:8px 0 5px;letter-spacing:.1em;text-transform:uppercase;">Compression Protocol</div>
+          <div style="display:flex;gap:5px;">
+            <div style="flex:1;text-align:center;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;"><div style="font-size:10px;font-weight:600;">Daily</div><div style="font-size:9px;color:var(--muted)">All → summary</div></div>
+            <div style="display:flex;align-items:center;color:var(--muted2);font-size:14px;">›</div>
+            <div style="flex:1;text-align:center;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;"><div style="font-size:10px;font-weight:600;">Weekly</div><div style="font-size:9px;color:var(--muted)">7 days → digest</div></div>
+            <div style="display:flex;align-items:center;color:var(--muted2);font-size:14px;">›</div>
+            <div style="flex:1;text-align:center;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;"><div style="font-size:10px;font-weight:600;">Monthly</div><div style="font-size:9px;color:var(--muted)">Archive</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="kv-card">
+      <div class="kvc-hd"><div class="kvc-ico">🧠</div><div class="kvc-title purple">Opus Vault — Notion (page: 3172dd4d)</div></div>
+      <div class="kvc-body" style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center;"><div style="font-family:monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:4px;">Active Threads</div><div style="font-size:19px;font-weight:700;color:var(--purple)">3</div><div style="font-size:9px;color:var(--muted)">Trinity · P2 · Social</div></div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center;"><div style="font-family:monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:4px;">Framework Watch</div><div style="font-size:19px;font-weight:700;color:var(--red)">2</div><div style="font-size:9px;color:var(--muted)">Unsurfaced tensions</div></div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center;"><div style="font-family:monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:4px;">Tested & Broken</div><div style="font-size:19px;font-weight:700;color:var(--blue)">∞</div><div style="font-size:9px;color:var(--muted)">Audit trail</div></div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center;"><div style="font-family:monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:4px;">R2 Daily Log</div><div style="font-size:19px;font-weight:700;color:var(--green)">Live</div><div style="font-size:9px;color:var(--muted)">Bucket 10176</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SWARM ═══ -->
+<div class="view" id="view-swarm">
+  <div class="swarm-wrap">
+    <div class="sh"><div class="sh-ico gold">🐝</div><div><div class="sh-lbl">AI Swarm Coordination</div><div class="sh-title">Multi-AI <span>Publication Pipeline</span></div></div></div>
+    <div class="kv-card" style="margin-bottom:13px;">
+      <div class="kvc-hd"><div class="kvc-ico">📡</div><div class="kvc-title gold">SHARED.md — Active Tasks</div><span style="margin-left:auto;font-family:monospace;font-size:9px;color:var(--muted2);">00_AI\AI_VAULT\SHARED.md</span></div>
+      <div class="kvc-body" id="swarm-tasks"></div>
+    </div>
+    <div class="kv-card" style="margin-bottom:13px;">
+      <div class="kvc-hd"><div class="kvc-ico">🏭</div><div class="kvc-title blue">Publication Pipeline — Stage Ownership</div></div>
+      <div class="kvc-body" id="pub-pipeline"></div>
+    </div>
+    <div class="sw-grid">
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">⚙️</div><div class="kvc-title purple">FORGE — Orchestration Shell</div></div>
+        <div class="kvc-body">
+          <div style="font-family:monospace;font-size:9px;color:var(--muted2);margin-bottom:7px;">O:\FORGE\_FORGE_SOURCE · Tauri + Vite + React</div>
+          <div class="kv-list">
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--purple)"></div>FORGE = shell, AI workspace, plugin platform</div>
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--blue)"></div>AI-HUB v2 = hotkey edge (AHK · B:\AI-HUB-v2)</div>
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--gold)"></div>ClipSync = shared sync plane (Cloudflare)</div>
+            <div class="kv-li"><div class="kv-li-dot" style="background:var(--green)"></div>Obsidian = knowledge source of truth</div>
+          </div>
+          <div style="margin-top:9px;font-family:monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Anti-Conflict Rules</div>
+          <div style="font-size:10px;color:var(--muted);line-height:1.7;">AHK owns CapsLock + Ctrl+Numpad · FORGE owns app shell · One writer for notes (NoteGateway) · ClipSync is data plane only</div>
+        </div>
+      </div>
+      <div class="kv-card">
+        <div class="kvc-hd"><div class="kvc-ico">𝛘</div><div class="kvc-title gold">Symbol Quick Reference</div></div>
+        <div class="kvc-body" id="symbol-table"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<div id="toast"></div>
+
+<script>
+var CARDS=[
+  {type:'clipboard',color:'gold',title:'χ = ∭(G·M·E·S·T·K·R·Q·F·C) dxdydt',preview:'Master Equation — integrates all ten domains across physical and spiritual reality.',meta:'2m ago',btns:[{l:'Copy',c:'prim'},{l:'Edit'},{l:'Tag'},{l:'🤖 Ask AI'}]},
+  {type:'snippet',color:'blue',title:'System prompt — Theophysics context v4.1',preview:'You are operating within the Theophysics framework. Physics and theology are dual projections of a single coherent reality. The Ten Laws are the constitutional axioms.',meta:'Yesterday',btns:[{l:'Copy',c:'c-blue'},{l:'Edit'},{l:'Pin'},{l:'Delete'}]},
+  {type:'prompt',color:'purple',title:'Deep Laws extraction prompt',preview:'Run /DEEPER then /INTEGRATE on this passage and identify if it maps to any of the Ten Laws. Return: law number, confidence, cross-domain implications.',meta:'Mar 9',btns:[{l:'Use Now',c:'c-purple'},{l:'Copy'},{l:'Edit'}]},
+  {type:'bookmark',color:'green',title:'PEAR Lab replication archive',preview:'pearlab.icrl.org — Mind-matter interaction studies. 2.5M trials, 6σ statistical significance.',meta:'Mar 8',btns:[{l:'Open',c:'c-green'},{l:'Copy URL'},{l:'🤖 Ingest'}]},
+  {type:'clipboard',color:'gold',title:'Nucleation Thesis v2 — draft para',preview:'The universe is not an accident of entropy but a nucleation event precipitated by a coherence field exceeding critical threshold Gc at t=0.',meta:'1h ago',btns:[{l:'Copy',c:'prim'},{l:'Edit'},{l:'Tag'},{l:'🤖 Ask AI'}]},
+  {type:'prompt',color:'purple',title:'/PROBE+/CHAIN — Trinity collapse mechanism',preview:'Father/Son/Spirit = Potential/Structure/Actualization. Run probe sequence on Trinity isomorphism and chain through to wavefunction collapse. Feb 26 session.',meta:'Mar 7',btns:[{l:'Use Now',c:'c-purple'},{l:'Copy'},{l:'Edit'}]},
+  {type:'snippet',color:'blue',title:'Moral Conservation Equation — Papers 9–10',preview:'dE/dt = -αD(t) + βC(Ψ,χ) — C = Christ alignment, β = grace. Christian solution to Moral Conservation.',meta:'Mar 6',btns:[{l:'Copy',c:'c-blue'},{l:'Edit'},{l:'Pin'}]},
+  {type:'bookmark',color:'green',title:'GCP — Global Consciousness Project',preview:'noosphere.princeton.edu — 325+ replicas, 6σ significance through 2010. 9/11 and disaster events show coherence spikes.',meta:'Mar 5',btns:[{l:'Open',c:'c-green'},{l:'🤖 Ingest'}]},
+  {type:'clipboard',color:'gold',title:'Adversary Thread — Ratchet Pattern',preview:'Century of Constitutional erosion maps onto domain attack sequence. Five crisis windows. Crisis > power > crisis passes > power remains. Both readings valid.',meta:'Mar 4',btns:[{l:'Copy',c:'prim'},{l:'Tag'},{l:'🤖 Ask AI'}]},
+  {type:'snippet',color:'blue',title:'BAES Intake Prompt — Academic Paper',preview:'You are evaluating a paper for structural quality, claim validity, and falsifiability. Score: are claims testable? Falsification criteria provided?',meta:'Mar 3',btns:[{l:'Copy',c:'c-blue'},{l:'Use Now'},{l:'Edit'}]}
+];
+
+var PUBLICATIONS=[
+  {num:'01',title:'Nucleation Thesis — The First Law',status:'inprog',label:'IN PROGRESS'},
+  {num:'02',title:'The Quantum Bridge (keystone)',status:'blocked',label:'BLOCKED'},
+  {num:'03',title:'Consciousness as Foundation',status:'queue',label:'QUEUED'},
+  {num:'04',title:'The Logos Field',status:'queue',label:'QUEUED'},
+  {num:'05',title:'Church as Quantum Error Correction',status:'queue',label:'QUEUED'},
+  {num:'06',title:'The Binding Contract',status:'done',label:'DONE v3'},
+  {num:'09',title:'Moral Conservation — The Problem',status:'queue',label:'QUEUED'},
+  {num:'10',title:'Moral Conservation — Christ Solution',status:'queue',label:'QUEUED'}
+];
+
+var BAES_SCORES=[
+  {ai:'ChatGPT',score:6.6,color:'var(--orange)'},
+  {ai:'Gemini (Full)',score:3.4,color:'var(--blue)'},
+  {ai:'Perplexity',score:2.6,color:'var(--purple)'},
+  {ai:'Gemini (P1)',score:1.0,color:'var(--red)'}
+];
+
+var BREAKTHROUGHS=[
+  {date:'2026-03-07',title:'189th Axiom — PERSONHOOD',desc:'New axiom (066b_PERSONHOOD_Axiom.md). Agency, intentionality, relational capacity. Closes the category error in jump from BC8 to "this is God."',color:'var(--gold)'},
+  {date:'2026-03-07',title:'D2.2 Chi Field — Empty Claim Filled',desc:'Chi defined as a real scalar field with informational content. Master Equation finally has a filled foundation. Was blocking 20+ downstream axioms.',color:'var(--blue)'},
+  {date:'2026-03-07',title:'P3.2 / T3.1 Contradiction Resolved',desc:'C_micro (conserved under unitary evolution) vs C_macro (cannot self-increase). Resolves internal contradiction cleanly.',color:'var(--green)'},
+  {date:'2026-03-07',title:'BC2 — Grace ≠ Thermodynamic Negentropy',desc:'Grace acts on the MORAL SIGN OPERATOR. Prevents naturalistic reduction of grace to energy transfer. Irreducibly theological.',color:'var(--purple)'}
+];
+
+var SWARM_TASKS=[
+  {ai:'Claudian',session:'2026-03-06',task:'NotebookLM pipeline — Genesis-to-Quantum Article 01 outputs',status:'active'},
+  {ai:'Claude Code CLI',session:'2026-03-07',task:'CRITICAL EDITS CHECKLIST — all 10 axiom edits COMPLETE',status:'done'},
+  {ai:'Codex',session:'2026-03-07',task:'Citation aggregation, YAML copilot, multi-pass extraction engine',status:'active'}
+];
+
+var PUB_PIPELINE=[
+  {stage:'1',label:'Content',owner:'Claude (Sonnet)',color:'var(--gold)',desc:'Writing, voice, structure'},
+  {stage:'2',label:'Vault QA',owner:'Claudian',color:'var(--blue)',desc:'Obsidian, MCP, cross-refs'},
+  {stage:'3',label:'Visual',owner:'Gemini',color:'var(--green)',desc:'Diagrams, images, chalkboard'},
+  {stage:'4',label:'Web Build',owner:'Codex',color:'var(--purple)',desc:'Templates, LaTeX, CF deploy'},
+  {stage:'5',label:'Distribution',owner:'Claudian + David',color:'var(--orange)',desc:'NotebookLM, Substack, social'}
+];
+
+var SYMBOLS=[
+  {sym:'χ (chi)',def:'Logos/Coherence Field — ground of reality'},
+  {sym:'Φ (Phi)',def:'Terminal Observer field'},
+  {sym:'Ψ_S',def:'Soul field — substrate-independent identity'},
+  {sym:'σ',def:'Sign operator (+1/-1, moral orientation)'},
+  {sym:'Ĝ',def:'Grace operator — external intervention'},
+  {sym:'Ω',def:'Adversary/Entropy field'},
+  {sym:'LLC',def:'Lowe Coherence Lagrangian'},
+  {sym:'Gc',def:'Critical coherence threshold (nucleation)'}
+];
+
+var CHANNELS=[
+  {name:'opus',dot:'var(--purple)',status:'active · this session',unread:3},
+  {name:'haiku',dot:'var(--blue)',status:'idle',unread:0},
+  {name:'gemini',dot:'var(--green)',status:'prompt sent · full audit pending',unread:1},
+  {name:'chatgpt',dot:'var(--orange)',status:'idle',unread:0},
+  {name:'broadcast',dot:'var(--gold)',status:'all channels',unread:0}
+];
+
+var QUEUE_ITEMS=[
+  {ico:'📄',name:'Architecture_of_Debt_v3.pdf',meta:'PDF · summarize',pct:100,st:'done'},
+  {ico:'📄',name:'Recovery_Validation_Victorian.pdf',meta:'PDF · extract + tag',pct:67,st:'proc'},
+  {ico:'🔗',name:'noosphere.princeton.edu',meta:'URL · scrape + summarize',pct:0,st:'pend'}
+];
+
+var TILES=[
+  {ico:'⚙️',name:'FORGE App',url:'O:\\FORGE'},
+  {ico:'🤖',name:'AI-HUB v2',url:'B:\\AI-HUB-v2'},
+  {ico:'⚡',name:'AI Comms Hub',url:'ai-comms-hub.workers.dev'},
+  {ico:'🌐',name:'theophysics.pro',url:'theophysics.pro'},
+  {ico:'✝️',name:'faiththruphysics',url:'faiththruphysics.com'},
+  {ico:'⚖️',name:'Coherence Factor',url:'in-dev'},
+  {ico:'📋',name:'ClipSync API',url:'clipsync.workers.dev'},
+  {ico:'📊',name:'Swarm Dashboard',url:'theophysics-dashboard.pages.dev'},
+  {ico:'➕',name:'Add Tile',url:''}
+];
+
+var INFRA=[
+  {lbl:'Edge Compute',name:'CF Workers',desc:'ai-comms-hub live',color:'var(--orange)',st:'online',sc:'var(--green)'},
+  {lbl:'Object Store',name:'R2 · Bucket 10176',desc:'1,300+ papers + daily logs',color:'var(--orange)',st:'connected',sc:'var(--green)'},
+  {lbl:'Relational',name:'PostgreSQL',desc:':177:2665 / axioms · 188 nodes',color:'var(--blue)',st:'connected',sc:'var(--green)'},
+  {lbl:'Workflow',name:'n8n · NAS :177',desc:'Obsidian sync · tasks',color:'var(--purple)',st:'syncing',sc:'var(--gold)'}
+];
+
+var SOCIAL_PLATFORMS=[
+  {name:'Substack',emoji:'📝',home:true},
+  {name:'LinkedIn',emoji:'💼',home:false},
+  {name:'X / Twitter',emoji:'🐦',home:false},
+  {name:'Facebook',emoji:'👥',home:false},
+  {name:'Gmail',emoji:'📧',home:false}
+];
+
+var FOLDER_SYSTEM=[
+  {name:'Clipboard',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Clipboard',desc:'Quick captures, snippets, mobile handoff pack.'},
+  {name:'Prompts',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Prompts',desc:'Prompt chains, command packs, reusable system prompts.'},
+  {name:'Research',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Research',desc:'Source bundles, bookmarks, forum targets, ingest staging.'},
+  {name:'Theophysics',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Theophysics',desc:'Master-equation artifacts, reports, canonical outputs.'},
+  {name:'Transfer',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Transfer',desc:'Phone/desktop/cloud shuttle lane.'},
+  {name:'Time',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Time',desc:'Task exports, schedules, daily operating state.'},
+  {name:'Publishing',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\Data\\Publishing',desc:'Web pages, forum drafts, deploy-ready outputs.'}
+];
+
+var DASHBOARD_MODULES=[
+  {name:'Clipboard',file:'clipboard1.html',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\clipboard1.html',desc:'Capture, hotkeys, clip review.'},
+  {name:'Prompt Picker',file:'prompt_picker.html',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\prompt_picker.html',desc:'Command chains and reusable prompt logic.'},
+  {name:'Research Links',file:'research_links.html',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\research_links.html',desc:'Bookmark inbox and source routing.'},
+  {name:'Theophysics Hub',file:'theophysics-hub.html',path:'C:\\Users\\lowes\\Desktop\\Personal dashboard\\theophysics-hub.html',desc:'Main operating shell.'}
+];
+
+var UPCOMING_DAYS=[
+  {day:'Tonight',desc:'Wire dashboard surface before equation runs.'},
+  {day:'Tomorrow',desc:'Run first canonical payload through folder spine.'},
+  {day:'Friday',desc:'Bridge results into page-builder and question layer.'},
+  {day:'Weekend',desc:'Turn outputs into publishable forum/web packages.'}
+];
+
+var TIME_STORE='pof2828_time_board_v1';
+var TIME_TASKS=[
+  {id:'t1',project:'TODAY',name:'Dashboard layer before autoresearch',meta:'Hub first. Engine second.',done:false},
+  {id:'t2',project:'Work',name:'Physical folders + transfer lane',meta:'Desktop now, cloud next.',done:false},
+  {id:'t3',project:'TODAY',name:'Page-builder path for conclusions',meta:'No conclusion without a page.',done:false},
+  {id:'t4',project:'LLL',name:'Comms hooks for OpenClaw / posting',meta:'Distribution engine follows content engine.',done:false}
+];
+
+var activeFilter='all', searchQ='';
+
+function renderCards(){
+  var c=document.getElementById('card-container');
+  if(!c) return;
+  if(activeFilter==='agent'){
+    c.innerHTML='<div style="text-align:center;padding:38px 18px;"><div style="font-size:34px;margin-bottom:10px">🤖</div><div style="font-size:14px;font-weight:600;color:var(--purple);margin-bottom:7px">Logos Agent</div><div style="font-size:12px;color:var(--muted);margin-bottom:18px">Persistent AI collaborator. R2 retrieval · clipboard context · synthesis workflows.</div><div style="display:flex;flex-direction:column;gap:6px;max-width:320px;margin:0 auto;"><button class="cb" style="padding:9px;background:var(--purple-dim);border-color:rgba(155,127,232,.28);color:var(--purple);" onclick="toast(\'Starting clipboard synthesis…\')">🔬 Synthesize clipboard context</button><button class="cb" style="padding:9px;" onclick="toast(\'Querying R2 vault…\')">📚 Query vault (R2 · 1,300 papers)</button><button class="cb" style="padding:9px;" onclick="toast(\'Launching web research…\')">🌐 Agentic web research</button><button class="cb" style="padding:9px;" onclick="toast(\'Running contradiction scan…\')">⚡ Contradiction scan — Ten Laws</button><button class="cb" style="padding:9px;" onclick="toast(\'Running BAES evaluation…\')">⚖️ Run BAES evaluation</button></div></div>';
+    return;
+  }
+  var filtered=CARDS.filter(function(card){
+    var mt=activeFilter==='all'||activeFilter===card.type||activeFilter==='pinned';
+    var ms=!searchQ||card.title.toLowerCase().indexOf(searchQ.toLowerCase())>-1||card.preview.toLowerCase().indexOf(searchQ.toLowerCase())>-1;
+    return mt&&ms;
+  });
+  if(!filtered.length){c.innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-size:13px">No items match.</div>';return;}
+  c.innerHTML=filtered.map(function(card,i){
+    return '<div class="cc '+card.color+'" style="animation-delay:'+i*30+'ms"><div class="cc-top"><div class="cc-title '+card.color+'">'+card.title+'</div><div class="cc-tag '+card.color+'">'+card.type+'</div></div><div class="cc-pre">'+card.preview+'</div><div class="cc-foot"><div class="cc-btns">'+card.btns.map(function(b){return '<button class="cb '+(b.c||'')+'" onclick="toast(\''+b.l+'\')">'+b.l+'</button>';}).join('')+'</div><div class="cc-meta">'+card.meta+'</div></div></div>';
+  }).join('');
+}
+
+function filterType(type,el,ac){
+  activeFilter=type;
+  var items=document.querySelectorAll('.cs-item');
+  for(var i=0;i<items.length;i++) items[i].className='cs-item';
+  el.className='cs-item '+(ac||'a-gold');
+  var titles={all:'All Items',pinned:'Pinned',clipboard:'Clipboard',snippet:'Snippets',prompt:'Prompts',bookmark:'Bookmarks',agent:'AI Agent'};
+  var ct=document.getElementById('cm-title');
+  if(ct) ct.innerHTML=(titles[type]||type)+' <span class="cm-count">#'+(type==='all'?142:CARDS.filter(function(c){return c.type===type;}).length)+'</span>';
+  renderCards();
+}
+
+function filterCards(q){searchQ=q;renderCards();}
+
+function renderPubs(){
+  var c=document.getElementById('pub-tracker');
+  if(!c) return;
+  c.innerHTML=PUBLICATIONS.map(function(p){
+    return '<div class="pub-item" onclick="toast(\''+p.title+'\')"><div class="pub-num">'+p.num+'</div><div class="pub-title">'+p.title+'</div><div class="pub-st '+p.status+'">'+p.label+'</div></div>';
+  }).join('');
+}
+
+function renderBAES(){
+  var c=document.getElementById('baes-rows');
+  if(!c) return;
+  c.innerHTML=BAES_SCORES.map(function(b){
+    return '<div class="baes-row"><div class="baes-ai" style="color:'+b.color+'">'+b.ai+'</div><div class="baes-bw"><div class="baes-bf" style="width:'+(b.score/10*100)+'%;background:'+b.color+'"></div></div><div class="baes-score" style="color:'+b.color+'">'+b.score+'</div></div>';
+  }).join('');
+}
+
+function renderBreakthroughs(){
+  var el=document.getElementById('breakthroughs');
+  if(!el) return;
+  el.innerHTML=BREAKTHROUGHS.map(function(b){
+    return '<div class="bk-item" style="border-left-color:'+b.color+'"><div class="bk-hd"><div class="bk-title" style="color:'+b.color+'">'+b.title+'</div><div class="bk-date">'+b.date+'</div></div><div class="bk-desc">'+b.desc+'</div></div>';
+  }).join('');
+}
+
+function renderQueue(){
+  var c=document.getElementById('queue-container');
+  if(!c) return;
+  c.innerHTML=QUEUE_ITEMS.map(function(q){
+    var stLabel=q.st==='done'?'DONE':q.st==='proc'?'PROC…':'QUEUE';
+    return '<div class="qi"><div class="qi-ico">'+q.ico+'</div><div class="qi-info"><div class="qi-name">'+q.name+'</div><div class="qi-meta">'+q.meta+'</div><div class="qi-bar"><div class="qi-fill" style="width:'+q.pct+'%"></div></div></div><div class="qi-st '+q.st+'">'+stLabel+'</div></div>';
+  }).join('');
+}
+
+function renderTiles(){
+  var c=document.getElementById('tiles-grid');
+  if(!c) return;
+  c.innerHTML=TILES.map(function(t){
+    var msg=t.url&&t.url!=='in-dev'&&t.url!==''?'Opening '+t.url:'Add tile dialog — Phase 2';
+    return '<div class="cf-tile'+(t.url?'':' add-tile')+'" onclick="toast(\''+msg+'\')"><div class="cft-ico">'+t.ico+'</div><div class="cft-name">'+t.name+'</div>'+(t.url?'<div class="cft-url">'+t.url+'</div>':'')+'</div>';
+  }).join('');
+}
+
+function renderInfra(){
+  var c=document.getElementById('infra-grid');
+  if(!c) return;
+  c.innerHTML=INFRA.map(function(i){
+    return '<div class="im-chip" style="border-color:'+i.color+'33"><div class="im-lbl">'+i.lbl+'</div><div class="im-name" style="color:'+i.color+'">'+i.name+'</div><div class="im-desc">'+i.desc+'</div><div class="im-st" style="color:'+i.sc+'">● '+i.st+'</div></div>';
+  }).join('');
+}
+
+function renderSocial(){
+  var c=document.getElementById('social-platforms');
+  if(!c) return;
+  c.innerHTML=SOCIAL_PLATFORMS.map(function(p){
+    return '<div class="plat-chip'+(p.home?' home':'')+'" onclick="toast(\''+p.name+' — protocol active\')"><span class="p-dot" style="'+(p.home?'background:var(--gold)':'')+'"></span>'+p.emoji+' '+p.name+(p.home?' · HOME':'')+'</div>';
+  }).join('');
+}
+
+function loadTimeTasks(){
+  try{
+    var raw=localStorage.getItem(TIME_STORE);
+    if(raw){
+      var parsed=JSON.parse(raw);
+      if(Array.isArray(parsed)&&parsed.length) TIME_TASKS=parsed;
+    }
+  }catch(e){}
+}
+
+function saveTimeTasks(){
+  localStorage.setItem(TIME_STORE,JSON.stringify(TIME_TASKS));
+}
+
+function renderTimeView(){
+  var list=document.getElementById('time-task-list');
+  if(list){
+    list.innerHTML=TIME_TASKS.map(function(task){
+      return '<div class="tm-task'+(task.done?' done':'')+'" onclick="toggleTask(\''+task.id+'\')"><div class="tm-check">'+(task.done?'✓':'')+'</div><div style="flex:1;"><div style="display:flex;gap:8px;align-items:center;"><div class="tm-name">'+task.name+'</div><div class="tm-tag">'+task.project+'</div></div><div class="tm-meta">'+task.meta+'</div></div></div>';
+    }).join('');
+  }
+  var folderGrid=document.getElementById('folder-grid');
+  if(folderGrid){
+    folderGrid.innerHTML=FOLDER_SYSTEM.map(function(folder){
+      return '<div class="folder-card"><div class="folder-name">'+folder.name+'</div><div class="folder-path">'+folder.path+'</div><div class="folder-desc">'+folder.desc+'</div><div class="folder-actions"><button class="tm-btn" onclick="copyText(\''+folder.path.replace(/\\/g,'\\\\')+'\');event.stopPropagation();">Copy Path</button><button class="tm-btn" onclick="toast(\''+folder.name+' ready for sync move\');event.stopPropagation();">Ready</button></div></div>';
+    }).join('');
+  }
+  var modules=document.getElementById('module-grid');
+  if(modules){
+    modules.innerHTML=DASHBOARD_MODULES.map(function(module){
+      return '<div class="module-card" onclick="openModule(\''+module.file+'\')"><div class="module-name">'+module.name+'</div><div class="module-desc">'+module.desc+'</div><div class="module-path">'+module.path+'</div></div>';
+    }).join('');
+  }
+  var upcoming=document.getElementById('upcoming-strip');
+  if(upcoming){
+    upcoming.innerHTML=UPCOMING_DAYS.map(function(item){
+      return '<div class="day-row"><div class="day-date">'+item.day+'</div><div class="day-desc">'+item.desc+'</div></div>';
+    }).join('');
+  }
+}
+
+function toggleTask(id){
+  TIME_TASKS=TIME_TASKS.map(function(task){
+    if(task.id===id) task.done=!task.done;
+    return task;
+  });
+  saveTimeTasks();
+  renderTimeView();
+}
+
+function addQuickTask(project){
+  var name=prompt('Quick task');
+  if(!name) return;
+  TIME_TASKS.unshift({
+    id:'t'+Date.now().toString(36),
+    project:project||'TODAY',
+    name:name.trim(),
+    meta:'Added from hub',
+    done:false
+  });
+  saveTimeTasks();
+  renderTimeView();
+  toast('Task added');
+}
+
+function openModule(file){
+  window.location.href=file;
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text).then(function(){toast('Copied');}).catch(function(){toast('Copy failed');});
+}
+
+function copyTodaySummary(){
+  var lines=TIME_TASKS.map(function(task){
+    return (task.done?'[x] ':'[ ] ')+task.project+' - '+task.name;
+  }).join('\n');
+  copyText(lines);
+}
+
+function renderChannels(){
+  var c=document.getElementById('channels-list');
+  if(!c) return;
+  c.innerHTML=CHANNELS.map(function(ch){
+    return '<div class="ch-row" onclick="toast(\'Opening /'+ch.name+' channel…\')"><div style="width:6px;height:6px;border-radius:50%;background:'+ch.dot+';flex-shrink:0;"></div><div class="ch-name">/'+ch.name+'</div><div class="ch-meta">'+ch.status+'</div>'+(ch.unread?'<div class="ch-badge">'+ch.unread+' unread</div>':'')+'</div>';
+  }).join('');
+}
+
+function renderSwarm(){
+  var t=document.getElementById('swarm-tasks');
+  if(t){
+    t.innerHTML=SWARM_TASKS.map(function(s){
+      var dot=s.status==='done'?'var(--green)':'var(--gold)';
+      return '<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;"><div style="width:6px;height:6px;border-radius:50%;background:'+dot+';box-shadow:0 0 5px '+dot+';flex-shrink:0;"></div><div style="font-size:11px;font-weight:600;width:115px;flex-shrink:0;">'+s.ai+'</div><div style="flex:1;font-size:11px;color:var(--muted);">'+s.task+'</div><div style="font-family:monospace;font-size:9px;padding:1px 6px;border-radius:9px;border:1px solid;'+(s.status==='done'?'color:var(--green);border-color:rgba(78,203,113,.28);background:var(--green-dim)':'color:var(--gold);border-color:rgba(242,201,76,.28);background:var(--gold-dim)')+'">'+s.status.toUpperCase()+'</div></div>';
+    }).join('');
+  }
+  var p=document.getElementById('pub-pipeline');
+  if(p){
+    var html='<div style="display:flex;align-items:stretch;gap:0;overflow-x:auto;">';
+    for(var i=0;i<PUB_PIPELINE.length;i++){
+      var s=PUB_PIPELINE[i];
+      var br=(i===0?'8px 0 0 8px':i===PUB_PIPELINE.length-1?'0 8px 8px 0':'0');
+      var bl=(i>0?'none':'1px solid var(--border)');
+      html+='<div style="flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border);border-radius:'+br+';border-left:'+bl+';padding:11px 12px;text-align:center;"><div style="font-family:monospace;font-size:9px;color:var(--muted2);margin-bottom:3px;">STAGE '+s.stage+'</div><div style="font-size:12px;font-weight:700;color:'+s.color+';margin-bottom:2px;">'+s.label+'</div><div style="font-size:11px;font-weight:600;margin-bottom:3px;">'+s.owner+'</div><div style="font-size:10px;color:var(--muted)">'+s.desc+'</div></div>';
+      if(i<PUB_PIPELINE.length-1) html+='<div style="display:flex;align-items:center;color:var(--muted2);font-size:16px;padding:0 2px;">›</div>';
+    }
+    html+='</div>';
+    p.innerHTML=html;
+  }
+  var sym=document.getElementById('symbol-table');
+  if(sym){
+    sym.innerHTML=SYMBOLS.map(function(s){
+      return '<div style="display:flex;gap:9px;padding:5px 7px;border-bottom:1px solid var(--border);align-items:baseline;"><div style="font-family:monospace;font-size:12px;color:var(--gold);font-weight:700;width:58px;flex-shrink:0;">'+s.sym+'</div><div style="font-size:11px;color:var(--muted);">'+s.def+'</div></div>';
+    }).join('');
+  }
+}
+
+function renderSparkline(){
+  var vals=[12,18,9,22,15,31,28,19,24,38,29,33,41,47];
+  var max=Math.max.apply(null,vals);
+  var s=document.getElementById('sparkline');
+  if(!s) return;
+  s.innerHTML=vals.map(function(v,i){
+    return '<div class="spark-bar'+(i===vals.length-1?' today':'')+'" style="height:'+(v/max*100)+'%"></div>';
+  }).join('');
+}
+
+/* ── KNOWLEDGE GRAPH ENGINE ── */
+var KG={nodes:[],edges:[],canvas:null,ctx:null,W:0,H:0,dpr:1,selected:null,hovered:null,showLabels:true,animId:null,mouse:{x:0,y:0},dragging:null,dragOff:{x:0,y:0}};
+
+function kgInit(){
+  var c=document.getElementById('kgCanvas');
+  if(!c) return;
+  KG.canvas=c;KG.ctx=c.getContext('2d');
+  KG.dpr=window.devicePixelRatio||1;
+  var rect=c.parentElement.getBoundingClientRect();
+  KG.W=rect.width;KG.H=420;
+  c.width=KG.W*KG.dpr;c.height=KG.H*KG.dpr;
+  c.style.width=KG.W+'px';c.style.height=KG.H+'px';
+  KG.ctx.scale(KG.dpr,KG.dpr);
+  kgBuildGraph();
+  c.addEventListener('mousemove',kgMouseMove);
+  c.addEventListener('mousedown',kgMouseDown);
+  c.addEventListener('mouseup',kgMouseUp);
+  c.addEventListener('mouseleave',kgMouseLeave);
+  c.addEventListener('click',kgClick);
+  if(KG.animId) cancelAnimationFrame(KG.animId);
+  kgAnimate();
+  var cnt=document.getElementById('kg-node-count');
+  if(cnt) cnt.textContent=KG.nodes.length+' nodes · '+KG.edges.length+' edges';
+}
+
+function kgBuildGraph(){
+  KG.nodes=[];KG.edges=[];
+  var cx=KG.W/2,cy=KG.H/2;
+  kgAddNode('chi','core','\u03C7','Logos/Coherence Field \u2014 ground of reality. Master Equation integrates all ten domains.',cx,cy,16,'#F2C94C');
+  kgAddNode('llc','core','LLC','Lowe Coherence Lagrangian: \u03C7(t)(d/dt(\u03A3domains))\u00B2 \u2212 S\u00B7\u03C7(t)',cx+55,cy+65,11,'#F2C94C');
+  var domains=[
+    {id:'G',name:'Grace',desc:'Divine unmerited favor. Operator \u011C acts on moral sign. Law 1.',angle:0},
+    {id:'M',name:'Matter',desc:'Physical substrate. E=mc\u00B2. Material reality. Law 2.',angle:36},
+    {id:'E',name:'Energy',desc:'Kinetic/potential capacity. Thermodynamic constraints. Law 3.',angle:72},
+    {id:'S',name:'Soul/Spirit',desc:'Substrate-independent identity field \u03A8_S. Consciousness as fundamental. Law 4.',angle:108},
+    {id:'T',name:'Time',desc:'Temporal dimension. dxdydt in Master Equation. Law 5.',angle:144},
+    {id:'K',name:'Knowledge',desc:'Epistemic domain. Measurable, falsifiable. ~28 axioms. Law 6.',angle:180},
+    {id:'R',name:'Relation',desc:'Relational logic. PERSONHOOD axiom (066b) grounds this. Law 7.',angle:216},
+    {id:'Q',name:'Quantum',desc:'Collapse mechanism, entanglement, PEAR-LAB 6.35\u03C3. Law 8.',angle:252},
+    {id:'F',name:'Faith',desc:'Trust/commitment operator. Structured response to coherence. Law 9.',angle:288},
+    {id:'C',name:'Coherence',desc:'Integration measure. Critical threshold Gc triggers nucleation. Law 10.',angle:324}
+  ];
+  var R=150;
+  for(var i=0;i<domains.length;i++){
+    var d=domains[i],a=d.angle*Math.PI/180-Math.PI/2;
+    kgAddNode('d_'+d.id,'domain',d.id,d.name+'. '+d.desc,cx+R*Math.cos(a),cy+R*Math.sin(a),10,'#4F8EF7');
+    kgAddEdge('chi','d_'+d.id,'domain','rgba(79,142,247,0.15)',1);
+  }
+  var pairs=[['d_G','d_Q','Law 1\u21948: Grace\u2194Quantum'],['d_M','d_F','Law 2\u21949: Matter\u2194Faith'],['d_E','d_C','Law 3\u219410: Energy\u2194Coherence'],['d_S','d_R','Law 4\u21947: Soul\u2194Relation'],['d_T','d_K','Law 5\u21946: Time\u2194Knowledge']];
+  for(var p=0;p<pairs.length;p++) kgAddEdge(pairs[p][0],pairs[p][1],'symmetry','rgba(242,201,76,0.35)',2.5);
+  kgAddEdge('chi','llc','core','rgba(242,201,76,0.25)',1.5);
+  var symbols=[
+    {id:'Phi',label:'\u03A6',desc:'Terminal Observer field.',near:'d_S',ox:-40,oy:-30},
+    {id:'PsiS',label:'\u03A8_S',desc:'Soul field \u2014 substrate-independent identity.',near:'d_S',ox:30,oy:-35},
+    {id:'sigma',label:'\u03C3',desc:'Sign operator (+1/\u22121). Moral orientation.',near:'d_G',ox:-35,oy:25},
+    {id:'Ghat',label:'\u011C',desc:'Grace operator. External intervention on moral sign.',near:'d_G',ox:30,oy:30},
+    {id:'Omega',label:'\u03A9',desc:'Adversary/Entropy field. Opposes coherence.',near:'d_E',ox:-40,oy:20},
+    {id:'Gc',label:'Gc',desc:'Critical coherence threshold. Nucleation trigger.',near:'d_C',ox:35,oy:25}
+  ];
+  for(var s=0;s<symbols.length;s++){
+    var sym=symbols[s],parent=kgFindNode(sym.near);
+    if(parent){
+      kgAddNode('s_'+sym.id,'symbol',sym.label,sym.desc,parent.x+sym.ox,parent.y+sym.oy,7,'#9B7FE8');
+      kgAddEdge('s_'+sym.id,sym.near,'symbol','rgba(155,127,232,0.18)',1);
+    }
+  }
+  var papers=[
+    {id:'P1',desc:'Nucleation Thesis. IN PROGRESS.',near:'d_C',ox:55,oy:-20},
+    {id:'P2',desc:'Quantum Bridge (keystone). BLOCKED.',near:'d_Q',ox:50,oy:20},
+    {id:'P3',desc:'Consciousness as Foundation.',near:'d_S',ox:-55,oy:15},
+    {id:'P4',desc:'The Logos Field. Chi formalized.',near:'d_K',ox:-50,oy:-20},
+    {id:'P5',desc:'Church as Quantum Error Correction.',near:'d_R',ox:45,oy:30},
+    {id:'P6',desc:'The Binding Contract. DONE v3.',near:'d_F',ox:-45,oy:25},
+    {id:'P9',desc:'Moral Conservation \u2014 Problem.',near:'d_E',ox:50,oy:-15},
+    {id:'P10',desc:'Moral Conservation \u2014 Christ Solution.',near:'d_G',ox:-50,oy:-20}
+  ];
+  for(var pp=0;pp<papers.length;pp++){
+    var paper=papers[pp],pn=kgFindNode(paper.near);
+    if(pn){
+      kgAddNode('p_'+paper.id,'paper',paper.id,paper.desc,pn.x+paper.ox,pn.y+paper.oy,8,'#4ECB71');
+      kgAddEdge('p_'+paper.id,paper.near,'paper','rgba(78,203,113,0.18)',1);
+      kgAddEdge('p_'+paper.id,'chi','paper','rgba(78,203,113,0.06)',0.5);
+    }
+  }
+  var axiomCounts={G:22,M:15,E:18,S:24,T:12,K:28,R:19,Q:21,F:14,C:16};
+  var domainIds=['G','M','E','S','T','K','R','Q','F','C'];
+  for(var di=0;di<domainIds.length;di++){
+    var did=domainIds[di],dn=kgFindNode('d_'+did);
+    if(!dn) continue;
+    var count=Math.min(axiomCounts[did]||10,6);
+    for(var ai=0;ai<count;ai++){
+      var aa=Math.PI*2*(ai/count)+Math.random()*0.3,ar=22+Math.random()*12;
+      kgAddNode('ax_'+did+'_'+ai,'axiom','','Axiom cluster ('+did+'): '+axiomCounts[did]+' axioms',dn.x+ar*Math.cos(aa),dn.y+ar*Math.sin(aa),2.5,'#5A5F6E');
+    }
+  }
+  var exps=[
+    {id:'PEAR',label:'PEAR',desc:'PEAR-LAB: 6.35\u03C3, 2.5M trials.',near:'d_Q',ox:-55,oy:-25},
+    {id:'GCP',label:'GCP',desc:'Global Consciousness Project: 6\u03C3, 325+ replicas.',near:'d_C',ox:-50,oy:30},
+    {id:'PROP',label:'PROP',desc:'PROP-COSMOS: 5.7\u03C3, 11/11 confirmed.',near:'d_M',ox:50,oy:25}
+  ];
+  for(var ei=0;ei<exps.length;ei++){
+    var exp=exps[ei],en=kgFindNode(exp.near);
+    if(en){
+      kgAddNode('e_'+exp.id,'evidence',exp.label,exp.desc,en.x+exp.ox,en.y+exp.oy,7,'#E05C6E');
+      kgAddEdge('e_'+exp.id,exp.near,'evidence','rgba(224,92,110,0.18)',1);
+    }
+  }
+}
+
+function kgAddNode(id,type,label,desc,x,y,r,color){KG.nodes.push({id:id,type:type,label:label,desc:desc,x:x,y:y,vx:0,vy:0,r:r,color:color});}
+function kgAddEdge(a,b,type,color,width){KG.edges.push({a:a,b:b,type:type,color:color,width:width});}
+function kgFindNode(id){for(var i=0;i<KG.nodes.length;i++) if(KG.nodes[i].id===id) return KG.nodes[i];return null;}
+
+function kgAnimate(){kgPhysicsStep();kgDraw();KG.animId=requestAnimationFrame(kgAnimate);}
+function kgPhysicsStep(){
+  var N=KG.nodes,E=KG.edges,damping=0.92,repulse=800,attract=0.008,gravity=0.02;
+  var cx=KG.W/2,cy=KG.H/2;
+  for(var i=0;i<N.length;i++){
+    if(N[i]===KG.dragging) continue;
+    var n=N[i],fx=0,fy=0;
+    for(var j=0;j<N.length;j++){
+      if(i===j) continue;
+      var dx=n.x-N[j].x,dy=n.y-N[j].y,dist=Math.sqrt(dx*dx+dy*dy)||1;
+      if(dist<200){var force=repulse/(dist*dist);fx+=dx/dist*force;fy+=dy/dist*force;}
+    }
+    for(var e=0;e<E.length;e++){
+      var edge=E[e],other=null;
+      if(edge.a===n.id) other=kgFindNode(edge.b);
+      else if(edge.b===n.id) other=kgFindNode(edge.a);
+      if(!other) continue;
+      var dx2=other.x-n.x,dy2=other.y-n.y,dist2=Math.sqrt(dx2*dx2+dy2*dy2)||1;
+      var targetDist=n.type==='axiom'?25:(edge.type==='symmetry'?250:90);
+      var springF=(dist2-targetDist)*attract;
+      fx+=dx2/dist2*springF;fy+=dy2/dist2*springF;
+    }
+    fx+=(cx-n.x)*gravity*0.01;fy+=(cy-n.y)*gravity*0.01;
+    if(n.id==='chi'){fx+=(cx-n.x)*0.05;fy+=(cy-n.y)*0.05;}
+    n.vx=(n.vx+fx)*damping;n.vy=(n.vy+fy)*damping;
+    n.x+=n.vx;n.y+=n.vy;
+    n.x=Math.max(n.r+5,Math.min(KG.W-n.r-5,n.x));
+    n.y=Math.max(n.r+5,Math.min(KG.H-n.r-5,n.y));
+  }
+}
+
+function kgDraw(){
+  var ctx=KG.ctx,N=KG.nodes,E=KG.edges;
+  ctx.clearRect(0,0,KG.W,KG.H);
+  for(var e=0;e<E.length;e++){
+    var edge=E[e],na=kgFindNode(edge.a),nb=kgFindNode(edge.b);
+    if(!na||!nb) continue;
+    var hl=KG.selected&&(edge.a===KG.selected.id||edge.b===KG.selected.id);
+    ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);
+    if(edge.type==='symmetry'){
+      ctx.strokeStyle=hl?'rgba(242,201,76,0.7)':'rgba(242,201,76,0.25)';
+      ctx.lineWidth=hl?3:2;ctx.setLineDash([6,4]);
+    } else {
+      ctx.strokeStyle=hl?(edge.color.replace(/[\d.]+\)$/,'0.5)')):edge.color;
+      ctx.lineWidth=hl?edge.width+0.5:edge.width;ctx.setLineDash([]);
+    }
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  for(var i=0;i<N.length;i++){
+    var n=N[i],isSel=KG.selected&&KG.selected.id===n.id,isHov=KG.hovered&&KG.hovered.id===n.id,isConn=false;
+    if(KG.selected){for(var ec=0;ec<E.length;ec++){if((E[ec].a===KG.selected.id&&E[ec].b===n.id)||(E[ec].b===KG.selected.id&&E[ec].a===n.id)){isConn=true;break;}}}
+    var dim=KG.selected&&!isSel&&!isConn;
+    if((n.type==='core'||isSel||isHov)&&n.type!=='axiom'){
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r+6,0,Math.PI*2);
+      var gc=n.color;
+      ctx.fillStyle='rgba('+parseInt(gc.slice(1,3),16)+','+parseInt(gc.slice(3,5),16)+','+parseInt(gc.slice(5,7),16)+',0.12)';
+      ctx.fill();
+    }
+    ctx.globalAlpha=dim?0.25:1;
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle=n.color;ctx.fill();
+    if(KG.showLabels&&n.label&&n.type!=='axiom'){
+      ctx.font='bold '+(n.r>10?11:n.r>7?10:8)+'px monospace';
+      ctx.fillStyle=n.r>10?'#0B0C0F':'rgba(244,246,255,0.8)';
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.label,n.x,n.y);
+    }
+    ctx.globalAlpha=1;
+  }
+}
+
+function kgMouseMove(e){
+  var rect=KG.canvas.getBoundingClientRect();
+  KG.mouse.x=e.clientX-rect.left;KG.mouse.y=e.clientY-rect.top;
+  if(KG.dragging){KG.dragging.x=KG.mouse.x+KG.dragOff.x;KG.dragging.y=KG.mouse.y+KG.dragOff.y;KG.dragging.vx=0;KG.dragging.vy=0;return;}
+  var found=null;
+  for(var i=KG.nodes.length-1;i>=0;i--){
+    var n=KG.nodes[i],dx=KG.mouse.x-n.x,dy=KG.mouse.y-n.y;
+    if(dx*dx+dy*dy<(n.r+4)*(n.r+4)&&n.type!=='axiom'){found=n;break;}
+  }
+  KG.hovered=found;KG.canvas.style.cursor=found?'pointer':'grab';
+  var tt=document.getElementById('kg-tooltip');
+  if(found&&tt){
+    var types={core:'Core Field',domain:'Framework Domain',symbol:'Symbol',paper:'Logos Paper',evidence:'Experimental Evidence'};
+    document.getElementById('kg-tt-type').textContent=types[found.type]||found.type;
+    document.getElementById('kg-tt-title').textContent=found.label;
+    document.getElementById('kg-tt-desc').textContent=found.desc;
+    tt.style.left=Math.min(KG.mouse.x+15,KG.W-270)+'px';
+    tt.style.top=(KG.mouse.y+10)+'px';
+    tt.classList.add('show');
+  } else if(tt){tt.classList.remove('show');}
+}
+function kgMouseDown(e){if(KG.hovered){KG.dragging=KG.hovered;KG.dragOff.x=KG.hovered.x-KG.mouse.x;KG.dragOff.y=KG.hovered.y-KG.mouse.y;KG.canvas.style.cursor='grabbing';}}
+function kgMouseUp(){KG.dragging=null;KG.canvas.style.cursor=KG.hovered?'pointer':'grab';}
+function kgMouseLeave(){KG.dragging=null;KG.hovered=null;var tt=document.getElementById('kg-tooltip');if(tt) tt.classList.remove('show');}
+function kgClick(){if(KG.hovered){KG.selected=KG.selected===KG.hovered?null:KG.hovered;}else{KG.selected=null;}}
+function kgResetView(){KG.selected=null;kgBuildGraph();}
+function kgToggleLabels(){KG.showLabels=!KG.showLabels;}
+/* ── DAILY PROGRESS MODAL ── */
+function openProgressModal(){
+  var overlay=document.getElementById('dp-modal-overlay');
+  document.getElementById('dp-modal-body').innerHTML=buildProgressModalContent();
+  overlay.classList.add('open');
+}
+function closeProgressModal(){document.getElementById('dp-modal-overlay').classList.remove('open');}
+
+function buildProgressModalContent(){
+  var h='';
+  h+='<div class="dp-section"><div class="dp-section-title">Domain Coverage Today</div>';
+  h+='<div class="dp-heatmap">';
+  var doms=[
+    {sym:'G',name:'Grace',active:true,depth:'Pattern',color:'var(--gold)'},
+    {sym:'M',name:'Matter',active:false,depth:'\u2014',color:'var(--muted2)'},
+    {sym:'E',name:'Energy',active:true,depth:'Law',color:'var(--gold)'},
+    {sym:'S',name:'Soul',active:true,depth:'Law',color:'var(--gold)'},
+    {sym:'T',name:'Time',active:false,depth:'\u2014',color:'var(--muted2)'},
+    {sym:'K',name:'Knowledge',active:true,depth:'Pattern',color:'var(--blue)'},
+    {sym:'R',name:'Relation',active:true,depth:'Surface',color:'var(--purple)'},
+    {sym:'Q',name:'Quantum',active:true,depth:'Law',color:'var(--gold)'},
+    {sym:'F',name:'Faith',active:false,depth:'\u2014',color:'var(--muted2)'},
+    {sym:'C',name:'Coherence',active:true,depth:'Pattern',color:'var(--blue)'}
+  ];
+  var depthColors={'Law':'var(--gold)','Pattern':'var(--blue)','Surface':'var(--purple)','\u2014':'var(--muted2)'};
+  for(var i=0;i<doms.length;i++){
+    var d=doms[i],bg=d.active?'rgba(242,201,76,0.05)':'var(--surface2)';
+    h+='<div class="dp-heat-cell'+(d.active?' active':'')+'" style="background:'+bg+'">';
+    h+='<div class="dp-heat-sym" style="color:'+(d.active?d.color:'var(--muted2)')+'">'+d.sym+'</div>';
+    h+='<div class="dp-heat-name">'+d.name+'</div>';
+    h+='<div class="dp-heat-depth" style="color:'+(depthColors[d.depth]||'var(--muted2)')+'">'+d.depth+'</div></div>';
+  }
+  h+='</div>';
+  h+='<div style="font-size:10px;color:var(--muted);margin-top:6px;display:flex;gap:12px;">';
+  h+='<span><span style="color:var(--gold)">\u25CF</span> Law depth (L3)</span>';
+  h+='<span><span style="color:var(--blue)">\u25CF</span> Pattern depth (L2)</span>';
+  h+='<span><span style="color:var(--purple)">\u25CF</span> Surface depth (L1)</span>';
+  h+='<span style="color:var(--muted2)">\u25CF Untouched</span></div></div>';
+
+  h+='<div class="dp-section"><div class="dp-section-title">Session Timeline</div>';
+  h+='<div class="dp-timeline"><div class="dp-tl-line"></div>';
+  var sessions=[
+    {time:'06:12',desc:'Voice note \u2192 Chi Field definition revision. D2.2 now has informational content formalized. Connected to P4.',tags:[{l:'D2.2',c:'var(--gold)'},{l:'P4',c:'var(--green)'},{l:'\u03C7',c:'var(--gold)'}],color:'var(--gold)'},
+    {time:'08:45',desc:'Obsidian deep edit: 12 notes in /Axioms/. PERSONHOOD axiom (066b) refined \u2014 agency + intentionality + relational capacity.',tags:[{l:'066b',c:'var(--purple)'},{l:'PERSONHOOD',c:'var(--purple)'},{l:'BC8',c:'var(--red)'}],color:'var(--purple)'},
+    {time:'11:30',desc:'3 papers ingested: PEAR replication archive, GCP methodology review, Penrose-Hameroff latest. Summaries to R2.',tags:[{l:'PEAR',c:'var(--red)'},{l:'GCP',c:'var(--red)'},{l:'Ingest',c:'var(--blue)'}],color:'var(--blue)'},
+    {time:'14:15',desc:'Agent synthesis: P3.2/T3.1 contradiction resolution verified. C_micro vs C_macro cleanly separated.',tags:[{l:'P3.2',c:'var(--green)'},{l:'T3.1',c:'var(--green)'},{l:'/PROBE',c:'var(--gold)'}],color:'var(--green)'},
+    {time:'16:40',desc:'Concept linking: 8 new edges. Grace\u2194Quantum symmetry deepened. BC2 sharpened \u2014 grace \u2260 thermodynamic negentropy.',tags:[{l:'BC2',c:'var(--gold)'},{l:'L1\u2194L8',c:'var(--gold)'}],color:'var(--gold)'}
+  ];
+  for(var s=0;s<sessions.length;s++){
+    var sess=sessions[s];
+    h+='<div class="dp-tl-item"><div class="dp-tl-dot" style="background:'+sess.color+';"></div>';
+    h+='<div class="dp-tl-time">'+sess.time+'</div><div class="dp-tl-desc">'+sess.desc+'</div><div class="dp-tl-tags">';
+    for(var t=0;t<sess.tags.length;t++) h+='<span class="dp-tl-tag" style="color:'+sess.tags[t].c+';border-color:'+sess.tags[t].c+'33;background:'+sess.tags[t].c+'11;">'+sess.tags[t].l+'</span>';
+    h+='</div></div>';
+  }
+  h+='</div></div>';
+
+  h+='<div class="dp-section"><div class="dp-section-title">Concept Links Formed Today (8 new)</div><div class="dp-links">';
+  var links=[
+    {from:'Grace (G)',to:'Quantum (Q)',via:'Symmetry pair deepened'},
+    {from:'Chi field (\u03C7)',to:'P4 Logos Field',via:'D2.2 formalization'},
+    {from:'PERSONHOOD (066b)',to:'Relation (R)',via:'Agency grounds relational logic'},
+    {from:'P3.2 C_micro',to:'T3.1 C_macro',via:'Contradiction resolved'},
+    {from:'BC2 Grace',to:'Thermodynamics',via:'Negentropy reduction blocked'},
+    {from:'PEAR-LAB 6.35\u03C3',to:'Quantum (Q)',via:'Replication evidence ingested'},
+    {from:'GCP 6\u03C3',to:'Coherence (C)',via:'Coherence spike methodology'},
+    {from:'Soul field (\u03A8_S)',to:'Consciousness (P3)',via:'Substrate independence confirmed'}
+  ];
+  for(var l=0;l<links.length;l++){
+    h+='<div class="dp-link-row"><span style="color:var(--blue);font-weight:600;">'+links[l].from+'</span>';
+    h+='<span class="dp-link-arrow">\u2192</span><span style="color:var(--green);font-weight:600;">'+links[l].to+'</span>';
+    h+='<span style="color:var(--muted);font-size:10px;margin-left:auto;">'+links[l].via+'</span></div>';
+  }
+  h+='</div></div>';
+
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  h+='<div class="dp-section" style="margin-bottom:0;"><div class="dp-section-title">Papers Touched</div>';
+  var pts=[{id:'P3',t:'Consciousness as Foundation',a:'Contradiction resolved'},{id:'P4',t:'The Logos Field',a:'Chi field defined (D2.2)'},{id:'P6',t:'The Binding Contract',a:'BC2 sharpened'}];
+  for(var pt=0;pt<pts.length;pt++){
+    h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;">';
+    h+='<div style="font-family:monospace;font-size:11px;font-weight:700;color:var(--green);width:28px;">'+pts[pt].id+'</div>';
+    h+='<div style="flex:1;"><div style="font-size:11px;font-weight:600;">'+pts[pt].t+'</div><div style="font-size:9px;color:var(--muted);">'+pts[pt].a+'</div></div></div>';
+  }
+  h+='</div>';
+  h+='<div class="dp-section" style="margin-bottom:0;"><div class="dp-section-title">Axiom Status</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px;">';
+  h+='<div style="text-align:center;padding:9px;background:var(--gold-dim);border:1px solid rgba(242,201,76,.2);border-radius:7px;"><div style="font-size:18px;font-weight:700;color:var(--gold);">3</div><div style="font-size:9px;color:var(--muted);">New created</div></div>';
+  h+='<div style="text-align:center;padding:9px;background:var(--blue-dim);border:1px solid rgba(79,142,247,.2);border-radius:7px;"><div style="font-size:18px;font-weight:700;color:var(--blue);">7</div><div style="font-size:9px;color:var(--muted);">Modified</div></div>';
+  h+='<div style="text-align:center;padding:9px;background:var(--green-dim);border:1px solid rgba(78,203,113,.2);border-radius:7px;"><div style="font-size:18px;font-weight:700;color:var(--green);">1</div><div style="font-size:9px;color:var(--muted);">Resolved</div></div></div>';
+  h+='<div style="font-size:10px;color:var(--muted);line-height:1.6;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;">';
+  h+='<span style="color:var(--gold);font-weight:600;">New:</span> 066b_PERSONHOOD, D2.2_Chi_Field_v2, BC2_Grace_Sharpened<br>';
+  h+='<span style="color:var(--red);font-weight:600;">Resolved:</span> P3.2/T3.1 contradiction (C_micro vs C_macro)</div></div></div>';
+  return h;
+}
+function renderGraph(){/* replaced by kgInit */}
+function switchView(v){
+  var views=document.querySelectorAll('.view');
+  for(var i=0;i<views.length;i++) views[i].classList.remove('active');
+  document.getElementById('view-'+v).classList.add('active');
+  var btns=document.querySelectorAll('.tb-btn');
+  var labels={knowledge:'🔬 Knowledge',clipboard:'📋 Clipboard',time:'⏱ Time',functions:'⚙️ Functions',comms:'⚡ Comms Hub',swarm:'🐝 Swarm'};
+  for(var b=0;b<btns.length;b++){
+    btns[b].classList.remove('active');
+    if(btns[b].textContent.trim()===labels[v]) btns[b].classList.add('active');
+  }
+  if(v==='knowledge'){renderSparkline();setTimeout(kgInit,100);renderBreakthroughs();}
+  if(v==='time') renderTimeView();
+  if(v==='swarm') renderSwarm();
+}
+
+function agentSend(){
+  var inp=document.getElementById('agent-input');
+  if(!inp.value.trim()){toast('Type something first…');return;}
+  toast('Sent to Logos Agent · routing via comms hub…');
+  inp.value='';
+}
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt=setTimeout(function(){t.classList.remove('show');},2200);
+}
+
+function updateClock(){
+  var now=new Date();
+  var el=document.getElementById('clock');
+  if(el) el.textContent=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+
+loadTimeTasks();
+renderCards();
+renderPubs();
+renderBAES();
+renderTimeView();
+renderQueue();
+renderTiles();
+renderInfra();
+renderSocial();
+renderChannels();
+renderSwarm();
+setInterval(updateClock,1000);
+updateClock();
+</script>
+</body>
+</html>

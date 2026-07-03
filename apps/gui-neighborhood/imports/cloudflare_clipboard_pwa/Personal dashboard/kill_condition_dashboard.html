@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kill Condition Dashboard</title>
+<style>
+:root{
+ --bg:#0B0C0F;--surface:#11131A;--surface2:#181B26;
+ --border:rgba(244,246,255,0.08);
+ --red:#E05C6E;--text:#F4F6FF;--muted:#8A8F9E;
+}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px;}
+.card{max-width:760px;margin:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;}
+.hd{padding:14px;border-bottom:1px solid var(--border);font-weight:700;color:var(--red);}
+.body{padding:14px;}
+.kill{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:8px;}
+.meta{font-family:monospace;font-size:11px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div class="card">
+<div class="hd">Kill Conditions</div>
+<div class="body">
+
+<div class="kill">
+<b>χ Field Not Detectable</b>
+<div class="meta">If χ field has no measurable signature, model fails.</div>
+</div>
+
+<div class="kill">
+<b>Collapse Not Coherence Linked</b>
+<div class="meta">If collapse occurs independently of coherence field.</div>
+</div>
+
+<div class="kill">
+<b>Moral Operator Indistinguishable From Noise</b>
+<div class="meta">If no statistical difference appears.</div>
+</div>
+
+<div class="kill">
+<b>Trinity Mapping Non‑Isomorphic</b>
+<div class="meta">If theological structure fails structural mapping.</div>
+</div>
+
+</div>
+</div>
+
+</body>
+</html>

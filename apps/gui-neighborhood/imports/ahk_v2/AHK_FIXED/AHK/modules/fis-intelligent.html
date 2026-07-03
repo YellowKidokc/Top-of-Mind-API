@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FIS · Intelligent mode</title>
+<style>
+  :root{
+    --bg:#0a0d14;--bg2:#0d1220;--card:#121826;--card2:#0f1420;--line:#1e2636;--line2:#2a3346;
+    --ink:#eef2f8;--mut:#94a0b4;--dim:#5e6a80;
+    --gold:#e8c468;--teal:#3dd1c4;--blue:#5b9bff;--green:#3ed598;--amber:#f0a83d;--red:#ff6b6b;
+    --sans:'Inter',-apple-system,Segoe UI,sans-serif;--serif:'Georgia','Times New Roman',serif;
+    --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#101a2e 0%,var(--bg) 55%);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+  .wrap{max-width:920px;margin:0 auto;padding:18px 24px 80px}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:8px}
+  .logo{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:1px;color:var(--mut)}
+  .logo b{color:var(--ink);font-weight:600;letter-spacing:2px}
+  .logo .gem{color:var(--gold)}
+  .nav-links{display:flex;gap:12px;font-size:12px}
+  .nav-links a{color:var(--mut);text-decoration:none;padding:5px 10px;border:1px solid transparent;border-radius:6px}
+  .nav-links a:hover{border-color:var(--line2);color:var(--ink)}
+  .nav-links a.active{background:#172033;border-color:var(--line2);color:var(--ink)}
+  .conn{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:7px}
+  .conn .d{width:8px;height:8px;border-radius:50%;background:var(--dim);transition:background .3s}
+  .conn .d.live{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .conn .d.dead{background:var(--red)}
+  .hero{text-align:center;padding:46px 0 30px}
+  .kicker{font-size:11px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:18px}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:52px;line-height:1.05;margin:0}
+  .hero h1 .g{color:var(--gold);font-style:italic}
+  .hero p{color:var(--mut);font-size:16px;max-width:540px;margin:16px auto 0}
+  .flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;font-size:12px;color:var(--mut)}
+  .flow b{color:var(--ink);font-weight:500}
+  .flow .s{color:var(--dim)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-top:18px}
+  .ask label{font-size:12px;color:var(--mut);display:block;margin-bottom:8px}
+  .ask .row{display:flex;gap:10px;flex-wrap:wrap}
+  .ask input{flex:1;min-width:260px;background:var(--card2);border:1px solid var(--line2);border-radius:10px;color:var(--ink);font-family:var(--mono);font-size:13px;padding:13px 14px}
+  .ask input::placeholder{color:var(--dim)}
+  .btn{border:none;border-radius:10px;padding:13px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+  .btn.gold{background:var(--gold);color:#1a1304}
+  .btn.gold:hover{background:#f0d078}
+  .btn.ghost{background:transparent;color:var(--mut);border:1px solid var(--line2)}
+  .btn.green{background:var(--green);color:#062417}
+  .btn.big{width:100%;padding:16px;font-size:15px;margin-top:8px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .hide{display:none}
+  .lead{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 14px}
+  .understand{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+  .uicon{width:46px;height:46px;border-radius:12px;background:#172033;display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto}
+  .ut{font-size:18px;font-weight:600;margin:0}
+  .us{color:var(--mut);font-size:14px;margin:4px 0 0}
+  .conf{margin-left:auto;text-align:right}
+  .conf .n{font-size:24px;font-weight:700;color:var(--teal)}
+  .conf .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+  .chi-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+  .chi-pill{font-size:11px;font-family:var(--mono);border:1px solid var(--line2);border-radius:6px;padding:3px 8px;color:var(--mut)}
+  .chi-pill.hot{color:var(--teal);border-color:#1a3340}
+  .chi-pill.warm{color:var(--amber);border-color:#2e2010}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:18px}
+  .stat{background:var(--card2);border-radius:12px;padding:14px}
+  .stat .n{font-size:22px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--mut);margin-top:2px}
+  .stat.warn .n{color:var(--amber)}
+  .stat.bad  .n{color:var(--red)}
+  .stat.good .n{color:var(--green)}
+  .stat.sys  .n{color:var(--blue)}
+  .plan{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+  .col{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .col.auto{border-top:3px solid var(--green)}
+  .col.review{border-top:3px solid var(--amber)}
+  .col.blocked{border-top:3px solid var(--blue)}
+  .col h3{margin:0 0 4px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .col .sub{font-size:12px;color:var(--mut);margin-bottom:14px}
+  .item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:0}
+  .item .t{flex:1;font-size:13px}
+  .item .c{font-size:12px;color:var(--mut);font-family:var(--mono)}
+  .sw{width:34px;height:20px;border-radius:20px;background:#28406a;position:relative;flex:0 0 auto;cursor:pointer;transition:background .2s}
+  .sw::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--green);transition:right .2s,left .2s}
+  .sw.off{background:#2a3346}.sw.off::after{right:auto;left:2px;background:#5e6a80}
+  .tagr{font-size:11px;color:var(--amber);border:1px solid #3a2e14;background:#1c1608;border-radius:6px;padding:3px 9px}
+  .tagb{font-size:11px;color:var(--blue);border:1px solid #1a2a40;background:#0d1620;border-radius:6px;padding:3px 9px}
+  .done .big-num{font-size:40px;font-weight:700;color:var(--green);font-family:var(--serif)}
+  .recap{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .pill{background:var(--card2);border-radius:10px;padding:10px 14px;font-size:13px}
+  .pill b{color:var(--teal)}
+  .muted{color:var(--dim);font-size:12px}
+  .center{text-align:center}
+  .spin{display:inline-block;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .err{background:#1a0a0a;border:1px solid #3a1010;border-radius:12px;padding:16px 20px;color:var(--red);font-size:13px;margin-top:14px}
+  .domain-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .db{font-size:11px;font-family:var(--mono);border-radius:5px;padding:3px 9px}
+  @media(max-width:680px){.hero h1{font-size:38px}.plan{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <div class="logo"><span class="gem">◆</span><b>FIS</b> · file intelligence system</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="nav-links">
+        <a href="/fis" class="active">Intelligent</a>
+        <a href="/fis/workbench">Workbench</a>
+        <a href="/fis/walkthrough">Walkthrough</a>
+      </div>
+      <div class="conn"><span class="d" id="eng-dot"></span><span id="eng-label">checking…</span></div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="kicker">file intelligence system · intelligent mode</div>
+    <h1>One folder.<br><span class="g">One guided action.</span></h1>
+    <p>Point FIS at a folder. It reads everything, tells you what it found, fixes what it's sure about, and only asks you about the rest.</p>
+    <div class="flow">
+      <b>scan</b><span class="s">→</span><b>understand</b><span class="s">→</span><b>approve</b><span class="s">→</span><b>done</b>
+    </div>
+  </div>
+
+  <div class="card ask">
+    <label>which folder should I understand?</label>
+    <div class="row">
+      <input id="path" value="D:\DONT TOUCH BOOT UP\PICS" />
+      <button class="btn gold" id="scan-btn" onclick="understand()">Understand this folder →</button>
+    </div>
+  </div>
+
+  <div id="err-box" class="hide"></div>
+
+  <!-- STEP 2: understanding + plan -->
+  <div id="result" class="hide">
+    <div class="card">
+      <p class="lead">what I understand</p>
+      <div class="understand">
+        <div class="uicon" id="u-icon">📁</div>
+        <div style="flex:1">
+          <p class="ut" id="u-title">Analysing…</p>
+          <p class="us" id="u-desc"></p>
+          <div class="chi-row" id="chi-row"></div>
+        </div>
+        <div class="conf"><div class="n" id="u-conf">—</div><div class="l">confidence</div></div>
+      </div>
+      <div class="stats" id="stats-row"></div>
+    </div>
+
+    <div class="card" id="plan-card">
+      <p class="lead">here's my plan — you can change anything</p>
+      <div class="plan" id="plan-grid"></div>
+      <button class="btn gold big" id="run-btn" onclick="run()" disabled>Scan complete — actions coming soon</button>
+      <p class="center muted" style="margin-top:10px">nothing is permanent · everything will go to the undo ledger · one click undoes it all</p>
+    </div>
+  </div>
+
+  <!-- STEP 3: done (placeholder) -->
+  <div id="done" class="hide">
+    <div class="card done center">
+      <p class="lead">scan complete</p>
+      <div class="big-num" id="done-num">—</div>
+      <p class="us" style="max-width:520px;margin:8px auto 0">Classification stored in FIS catalog. Action execution coming in next build.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+        <button class="btn ghost" onclick="reset()">↺ scan another folder</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3456';
+
+// ── class metadata ──────────────────────────────────────────────────────────
+const CLASS_META = {
+  system:   { icon:'⚙️',  label:'System / software folder',    color:'#5b9bff',
+    desc:'Contains code, project roots, or dependency markers. FIS will index and report only — no rename, move, or delete.',
+    actions_safe:[],  actions_review:['index','hash','report_duplicates'],  blocked:true },
+  media:    { icon:'🖼️',  label:'Media collection',            color:'#3ed598',
+    desc:'Dominated by images, video, or audio. Safe to sort by date, deduplicate, and rename weak filenames.',
+    actions_safe:['sort_date','dedupe'],  actions_review:['rename','archive'] },
+  document: { icon:'📄',  label:'Document folder',              color:'#e8c468',
+    desc:'Mostly PDFs, Office docs, or spreadsheets. Can rename, classify, and extract metadata.',
+    actions_safe:['rename','dedupe'],  actions_review:['move','classify','archive'] },
+  project:  { icon:'📦',  label:'Project bundle',               color:'#a06bff',
+    desc:'Mixed intentional content. FIS preserves the boundary and only sorts within.',
+    actions_safe:['index','subfolder_sort'],  actions_review:['rename_internal'] },
+  dump:     { icon:'🗑️',  label:'Dump / holding pile',          color:'#f0a83d',
+    desc:'High noise, weak names, mixed types. Triage mode: group the obvious, flag the rest.',
+    actions_safe:['group_obvious','dedupe'],  actions_review:['rename','quarantine','triage'] },
+  archive:  { icon:'📦',  label:'Archive (old, coherent)',       color:'#94a0b4',
+    desc:'Old but structured. Safe to compress and verify, leave organisational structure alone.',
+    actions_safe:['verify_integrity','index'],  actions_review:['compress'] },
+  unknown:  { icon:'❓',  label:'Unknown',                       color:'#5e6a80',
+    desc:'Could not determine folder type reliably.',
+    actions_safe:[],  actions_review:[] },
+};
+
+const ACTION_LABELS = {
+  index:              'Build FIS index',
+  hash:               'Hash all files (MD5)',
+  report_duplicates:  'Report duplicates',
+  sort_date:          'Sort media by date',
+  dedupe:             'Flag duplicates',
+  rename:             'Rename weak filenames',
+  archive:            'Archive old items',
+  classify:           'Classify documents',
+  move:               'Move to correct location',
+  subfolder_sort:     'Sort into subfolders',
+  rename_internal:    'Rename files inside',
+  group_obvious:      'Group by obvious type',
+  quarantine:         'Quarantine unknowns',
+  triage:             'Triage mixed content',
+  verify_integrity:   'Verify file integrity',
+  compress:           'Compress archive',
+  flag_suspicious:    'Flag suspicious files',
+};
+
+const CHI_NAMES = {G:'Grace',M:'Moral',E:'Truth',S:'Entropy',T:'Time',
+                   K:'Knowledge',R:'Relation',Q:'Quantum',F:'Faith',C:'Coherence'};
+
+// ── engine status ────────────────────────────────────────────────────────────
+async function checkEngine(){
+  try{
+    const r = await fetch(`${API}/api/fis/status`,{signal:AbortSignal.timeout(3000)});
+    if(!r.ok) throw new Error();
+    const d = await r.json();
+    const dot   = document.getElementById('eng-dot');
+    const label = document.getElementById('eng-label');
+    if(d.running){
+      dot.className='d live';
+      label.textContent=`engine running · ${(d.active||0).toLocaleString()} files indexed`;
+    } else {
+      dot.className='d dead'; label.textContent='daemon not running';
+    }
+  } catch {
+    const dot=document.getElementById('eng-dot');dot.className='d dead';
+    document.getElementById('eng-label').textContent='server offline';
+  }
+}
+checkEngine(); setInterval(checkEngine,30000);
+
+// ── main flow ────────────────────────────────────────────────────────────────
+async function understand(){
+  const path = document.getElementById('path').value.trim();
+  if(!path) return;
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Classifying…';
+  document.getElementById('err-box').classList.add('hide');
+  document.getElementById('result').classList.add('hide');
+  document.getElementById('done').classList.add('hide');
+
+  try {
+    // 1. classify the folder
+    const res = await fetch(`${API}/api/fis/classify`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({path})
+    });
+    if(!res.ok){
+      const e = await res.json().catch(()=>({}));
+      throw new Error(e.detail || `HTTP ${res.status}`);
+    }
+    const d = await res.json();
+
+    // 2. pull catalog stats for this path (how many indexed already)
+    let catalogCount = 0;
+    try {
+      const sr = await fetch(`${API}/api/fis/search?q=${encodeURIComponent(path)}&limit=1&status=active`);
+      if(sr.ok){ const sc = await sr.json(); catalogCount = sc.length; }
+    } catch {}
+
+    renderResult(d, path, catalogCount);
+
+    document.getElementById('result').classList.remove('hide');
+    document.getElementById('result').scrollIntoView({behavior:'smooth'});
+
+  } catch(e) {
+    showErr(e.message || 'Unknown error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Understand this folder →';
+  }
+}
+
+function renderResult(d, path, catalogCount){
+  const fc   = d.folder_class || 'unknown';
+  const meta = CLASS_META[fc] || CLASS_META.unknown;
+  const conf = Math.round((d.confidence||0)*100);
+
+  // understanding block
+  document.getElementById('u-icon').textContent  = meta.icon;
+  document.getElementById('u-title').textContent = meta.label;
+  document.getElementById('u-conf').textContent  = conf+'%';
+
+  // description
+  let desc = meta.desc;
+  if(d.system_markers_found && d.system_markers_found.length){
+    desc += ` Markers found: ${d.system_markers_found.slice(0,4).join(', ')}`;
+    if(d.system_markers_found.length > 4) desc += ` +${d.system_markers_found.length-4} more`;
+  }
+  document.getElementById('u-desc').textContent = desc;
+
+  // CHI pills (if file was classified)
+  const chiRow = document.getElementById('chi-row');
+  chiRow.innerHTML = '';
+  if(d.chi){
+    Object.entries(d.chi).forEach(([k,v])=>{
+      if(v>0){
+        const p = document.createElement('span');
+        p.className = 'chi-pill '+(v>=3?'hot':v>=2?'warm':'');
+        p.textContent = `${k}:${CHI_NAMES[k]||k} ${v}/3`;
+        chiRow.appendChild(p);
+      }
+    });
+  }
+  if(d.chi_domain && d.chi_domain !== 'unknown'){
+    const p = document.createElement('span');
+    p.className='chi-pill hot';
+    p.textContent=`domain:${d.chi_domain}`;
+    chiRow.appendChild(p);
+  }
+
+  // stats
+  const stats = document.getElementById('stats-row');
+  stats.innerHTML = '';
+  const ext = d.ext_distribution || {};
+  const fc_total = d.file_count || 0;
+  const badN = Math.round((d.bad_name_ratio||0)*fc_total);
+  const risk  = d.dependency_risk||0;
+
+  const statDefs = [
+    {n: fc_total.toLocaleString(),  l:'files',      cls: ''},
+    {n: `${(d.dominant_ratio*100||0).toFixed(0)}%`, l:`${d.dominant_family||'mixed'} files`, cls: d.dominant_ratio>0.7?'good':''},
+    {n: badN > 0 ? badN.toLocaleString() : '0', l:'weak names', cls: badN>10?'warn':'good'},
+    {n: `${Math.round(risk*100)}%`, l:'dependency risk', cls: risk>0.5?'bad':risk>0.2?'warn':'good'},
+  ];
+  if(catalogCount > 0)
+    statDefs.push({n: catalogCount.toLocaleString(), l:'in FIS catalog', cls:'sys'});
+
+  statDefs.forEach(s=>{
+    const el = document.createElement('div');
+    el.className=`stat ${s.cls}`;
+    el.innerHTML=`<div class="n">${s.n}</div><div class="l">${s.l}</div>`;
+    stats.appendChild(el);
+  });
+
+  // plan
+  renderPlan(meta, d);
+}
+
+function renderPlan(meta, d){
+  const grid = document.getElementById('plan-grid');
+  grid.innerHTML = '';
+
+  if(meta.blocked){
+    // system folder — show PIN ONLY
+    const col = document.createElement('div');
+    col.className='col blocked';
+    col.style='grid-column:1/-1';
+    col.innerHTML=`
+      <h3 style="color:var(--blue)">🔒 PIN ONLY — dependency folder detected</h3>
+      <div class="sub">Renaming, moving, or deleting files here could break software. FIS will only observe.</div>
+      ${(meta.actions_review||[]).map(a=>`
+        <div class="item"><span class="t">${ACTION_LABELS[a]||a}</span><span class="tagb">read-only</span></div>
+      `).join('')}
+    `;
+    grid.appendChild(col);
+  } else {
+    // auto column
+    const autoCol = document.createElement('div');
+    autoCol.className='col auto';
+    const safeItems = (meta.actions_safe||[]).map(a=>`
+      <div class="item">
+        <span class="t">${ACTION_LABELS[a]||a}</span>
+        <span class="sw" onclick="this.classList.toggle('off')"></span>
+      </div>
+    `).join('') || '<div class="item"><span class="t" style="color:var(--dim)">No auto actions yet</span></div>';
+    autoCol.innerHTML=`
+      <h3 style="color:var(--green)">✓ I'll handle these</h3>
+      <div class="sub">high confidence — safe &amp; reversible</div>
+      ${safeItems}
+    `;
+
+    // review column
+    const revCol = document.createElement('div');
+    revCol.className='col review';
+    const revItems = (meta.actions_review||[]).map(a=>`
+      <div class="item"><span class="t">${ACTION_LABELS[a]||a}</span><span class="tagr">review</span></div>
+    `).join('') || '<div class="item"><span class="t" style="color:var(--dim)">Nothing flagged</span></div>';
+    revCol.innerHTML=`
+      <h3 style="color:var(--amber)">? I'll ask you</h3>
+      <div class="sub">lower confidence — needs your call</div>
+      ${revItems}
+    `;
+
+    grid.appendChild(autoCol);
+    grid.appendChild(revCol);
+  }
+
+  // run button label
+  const btn = document.getElementById('run-btn');
+  if(meta.blocked){
+    btn.textContent = 'Index only (safe, no file changes)';
+    btn.disabled = false;
+  } else if((meta.actions_safe||[]).length > 0){
+    btn.textContent = 'Coming soon — approve & execute';
+    btn.disabled = true;
+  } else {
+    btn.textContent = 'No automatic actions for this folder type';
+    btn.disabled = true;
+  }
+}
+
+function run(){
+  document.getElementById('done').classList.remove('hide');
+  document.getElementById('done').scrollIntoView({behavior:'smooth'});
+}
+
+function reset(){
+  document.getElementById('done').classList.add('hide');
+  document.getElementById('result').classList.add('hide');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showErr(msg){
+  const el = document.getElementById('err-box');
+  el.className='err';
+  el.textContent = '⚠ ' + msg;
+}
+</script>
+</body>
+</html>
