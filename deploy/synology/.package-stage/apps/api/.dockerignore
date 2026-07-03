@@ -1,0 +1,14 @@
+.data/
+.pytest_cache/
+*.egg-info/
+__pycache__/
+*.pyc
+tests/
+docs/
+dist/
+build/
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
