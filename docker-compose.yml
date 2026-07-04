@@ -1,0 +1,43 @@
+services:
+  fihub-api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: fihub-api
+    restart: unless-stopped
+    ports:
+      - "10000:10000"
+    volumes:
+      # Persist SQLite database across container restarts
+      - fihub-data:/app/.data
+      # Mount your NAS storage so file scanning works
+      - /volume1:/scan/volume1:ro
+    environment:
+      - FIHUB_DB_PATH=/app/.data/file-intelligence-hub.sqlite3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Self-hosted GitHub Actions runner
+  # This container receives deploy commands from GitHub
+  github-runner:
+    image: myoung34/github-runner:latest
+    container_name: fihub-runner
+    restart: unless-stopped
+    environment:
+      - REPO_URL=https://github.com/YellowKidokc/tom_fis_api
+      # SET THESE IN PORTAINER:
+      # RUNNER_TOKEN=<your token from GitHub>
+      # RUNNER_NAME=fihub-synology
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - fihub-runner:/home/runner
+
+volumes:
+  fihub-data:
+    driver: local
+  fihub-runner:
+    driver: local
